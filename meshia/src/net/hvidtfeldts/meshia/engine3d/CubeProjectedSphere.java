@@ -74,7 +74,7 @@ public class CubeProjectedSphere extends PolygonBuilder {
             }
         });
         in = addPlane(n, dx, dy, c1, c2, c3, c4, in);
-        
+        // x
     }
     
     private int addPlane(int n, float dx, float dy, Vector3 c1, Vector3 c2, Vector3 c3, Vector3 c4, int in) {
