@@ -6,6 +6,9 @@ import javax.media.opengl.GL2ES2;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
+/**
+ * Simple box
+ */
 public class Box3D implements Object3D {
     private GLArrayDataServer vertices;
     private GLArrayDataServer normals;
