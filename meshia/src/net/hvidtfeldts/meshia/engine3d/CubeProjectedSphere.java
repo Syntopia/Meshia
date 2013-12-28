@@ -5,7 +5,7 @@ import net.hvidtfeldts.meshia.math.Vector3;
 public class CubeProjectedSphere extends PolygonBuilder {
     
     public CubeProjectedSphere() {
-        int n = 50;
+        int n = 5;
         float dx = 1.0f / n;
         float dy = 1.0f / n;
         

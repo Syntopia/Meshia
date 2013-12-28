@@ -9,6 +9,7 @@ out vec4   rotatedNormal;
 void main(void)
 {
   frontColor= color;
+//  frontColor = pmvMatrix[1][1];
   rotatedNormal =pmvMatrix[3]* normal;
   gl_Position = pmvMatrix[0] * pmvMatrix[1] * vertex;
 }

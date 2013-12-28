@@ -12,7 +12,9 @@ import javax.swing.JDialog;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.ScrollPaneConstants;
 
 import net.hvidtfeldts.meshia.engine3d.OpenGlWindow;
 import net.hvidtfeldts.utils.Logger;
@@ -26,15 +28,21 @@ public class MainWindow extends JDialog {
     }
     
     public MainWindow() {
-        setMinimumSize(new Dimension(100, 100));
         
         setLayout(new BorderLayout());
         openGlWindow = OpenGlWindow.createOpenGlWindow();
         add(openGlWindow, BorderLayout.CENTER);
         TextAreaLogger tal = new TextAreaLogger();
         Logger.setLogger(tal);
-        add(tal.getComponent(), BorderLayout.SOUTH);
+        add(tal.createComponent(), BorderLayout.SOUTH);
         setupMenus();
+        openGlWindow.setPreferredSize(new Dimension(400, 400));
+        setSize(new Dimension(400, 500));
+        
+        // this.validate();
+        this.invalidate();
+        // this.pack();
+        
     }
     
     @Override
@@ -70,8 +78,11 @@ public class MainWindow extends JDialog {
             textArea.append(obj.toString() + "\n");
         }
         
-        public Component getComponent() {
-            return textArea;
+        public Component createComponent() {
+            JScrollPane sp = new JScrollPane(textArea);
+            sp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+            sp.setPreferredSize(new Dimension(50, 200));
+            return sp;
         }
         
         @Override

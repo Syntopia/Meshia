@@ -8,6 +8,7 @@ import javax.media.opengl.GL2ES2;
 
 import net.hvidtfeldts.meshia.engine3d.Transformator.IdentityTransformator;
 import net.hvidtfeldts.meshia.math.Vector3;
+import net.hvidtfeldts.utils.Logger;
 
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.glsl.ShaderState;
@@ -104,6 +105,8 @@ public class PolygonBuilder implements Object3D {
         colors = null;
         normals = null;
         triangles = null;
+        
+        Logger.log(String.format("Created %s polygons", elementCount));
     }
     
     @Override

@@ -1,7 +1,14 @@
 package net.hvidtfeldts.utils;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
+
+import javax.swing.SwingUtilities;
+
 public class Logger {
     private static Logger log = new Logger();
+    private static OutputStream stream = new LoggerPrintStream();
     
     protected void internalLog(Object obj) {
         System.out.println(obj);
@@ -21,5 +28,43 @@ public class Logger {
     
     public static void warn(Object obj) {
         log.internalWarn(obj);
+    }
+    
+    public static PrintStream getLoggerWarnStream() {
+        return new PrintStream(stream);
+    }
+    
+    private static class LoggerPrintStream extends OutputStream {
+        
+        private final StringBuffer sb = new StringBuffer();
+        
+        @Override
+        public void flush() {
+        }
+        
+        @Override
+        public void close() {
+        }
+        
+        @Override
+        public void write(int b) throws IOException {
+            
+            if (b == '\r')
+                return;
+            
+            if (b == '\n') {
+                final String text = sb.toString() + "\n";
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        warn(text);
+                    }
+                });
+                sb.setLength(0);
+                return;
+            }
+            
+            sb.append((char) b);
+        }
     }
 }

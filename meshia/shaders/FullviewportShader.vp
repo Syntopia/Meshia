@@ -1,0 +1,23 @@
+// Contains p, mv, inverse(mv), transpose(inv(mv)) = normalmatrix
+uniform mat4    pmvMatrix[4]; 
+
+in vec4    vertex;
+out vec3   dir;
+out vec3   eye;
+out mat4 transform;
+// Following Rrrola's boxplorer.
+float fov2scale(float fov){return tan(radians(fov/2.0));}
+
+void main(void)
+{
+  gl_Position =vertex;
+  gl_Position.xy*=0.9;
+  float fov_x = 90.0f;
+  float fov_y = 90.0f;
+  
+  eye=(pmvMatrix[1][3]).xyz;
+  
+  dir = vertex.xyz;
+transform =transpose (pmvMatrix[1]);
+
+}

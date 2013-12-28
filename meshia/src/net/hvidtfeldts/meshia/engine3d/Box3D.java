@@ -78,7 +78,11 @@ public class Box3D implements Object3D {
         vertices = GLArrayDataServer.createGLSL("vertex", 3, GL.GL_FLOAT, false, ver.length / 3, GL.GL_STATIC_DRAW);
         
         for (int i = 0; i < ver.length; i++) {
-            vertices.putf(ver[i]);
+            if (i % 3 == 2) {
+                vertices.putf(ver[i] * 6.0f - 3.0f);
+            }
+            else
+                vertices.putf(ver[i] * 0.5f - 0.25f);
         }
         vertices.seal(gl, true);
         st.ownAttribute(vertices, true);
