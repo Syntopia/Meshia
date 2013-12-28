@@ -6,7 +6,7 @@ import javax.media.opengl.GL2ES2;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
-public class FullviewportObject {
+public class RaytracerObject {
     private GLArrayDataServer vertices;
     
     public void init(final GL2ES2 gl, ShaderState st) {

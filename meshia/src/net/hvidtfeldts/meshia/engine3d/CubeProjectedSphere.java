@@ -12,7 +12,7 @@ public class CubeProjectedSphere extends PolygonBuilder {
         Vector3 c1 = new Vector3(1, 1, 0);
         Vector3 c2 = new Vector3(1, 1, 0);
         Vector3 c3 = new Vector3(1, 1, 0);
-        Vector3 c4 = new Vector3(0, 0, 0);
+        Vector3 c4 = new Vector3(1, 1, 0);
         
         int in = 0;
         this.setTransformator(new Transformator() {

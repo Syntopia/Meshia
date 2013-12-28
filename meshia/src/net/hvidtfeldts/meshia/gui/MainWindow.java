@@ -24,11 +24,11 @@ public class MainWindow extends JDialog {
     private final OpenGlWindow openGlWindow;
     
     static {
+        // Initialize OpenGL
         GLProfile.initSingleton();
     }
     
     public MainWindow() {
-        
         setLayout(new BorderLayout());
         openGlWindow = OpenGlWindow.createOpenGlWindow();
         add(openGlWindow, BorderLayout.CENTER);
@@ -38,11 +38,7 @@ public class MainWindow extends JDialog {
         setupMenus();
         openGlWindow.setPreferredSize(new Dimension(400, 400));
         setSize(new Dimension(400, 500));
-        
-        // this.validate();
         this.invalidate();
-        // this.pack();
-        
     }
     
     @Override
@@ -75,7 +71,9 @@ public class MainWindow extends JDialog {
         
         @Override
         protected void internalLog(Object obj) {
-            textArea.append(obj.toString() + "\n");
+            String message = obj.toString() + "\n";
+            textArea.append(message);
+            System.out.println(message);
         }
         
         public Component createComponent() {
@@ -87,7 +85,9 @@ public class MainWindow extends JDialog {
         
         @Override
         protected void internalWarn(Object obj) {
-            textArea.append("Warning: " + obj.toString() + "\n");
+            String message = "Warning: " + obj.toString() + "\n";
+            textArea.append(message);
+            System.err.println(message);
         }
     }
 }

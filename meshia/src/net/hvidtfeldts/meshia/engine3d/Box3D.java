@@ -92,7 +92,8 @@ public class Box3D implements Object3D {
         colors = GLArrayDataServer.createGLSL("color", 4, GL.GL_FLOAT, false, col.length / 4, GL.GL_STATIC_DRAW);
         
         for (int i = 0; i < col.length; i++) {
-            colors.putf(col[i]);
+            // colors.putf(col[i]);
+            colors.putf(1.0f);
         }
         colors.seal(gl, true);
         st.ownAttribute(colors, true);

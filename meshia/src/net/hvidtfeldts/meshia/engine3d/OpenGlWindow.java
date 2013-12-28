@@ -10,25 +10,31 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLCanvas;
 
-import net.hvidtfeldts.utils.Logger;
-
 import com.jogamp.opengl.util.Animator;
 
 public final class OpenGlWindow extends GLCanvas implements MouseListener, MouseMotionListener {
+    public static final boolean MEASURE_FPS = false;
+    
     private static final long serialVersionUID = 1L;
-    private final Animator animator;
-    OpenGlController oglc;
+    private Animator animator;
+    private final Engine oglc;
+    
+    private int x;
+    private int y;
     
     private OpenGlWindow(final GLCapabilities caps) {
         super(caps);
         
-        oglc = new OpenGlController();
+        oglc = new Engine();
         addGLEventListener(oglc);
         this.setBackground(Color.BLACK);
-        animator = new Animator();
-        animator.setRunAsFastAsPossible(true);
-        animator.add(this);
-        animator.start();
+        
+        if (MEASURE_FPS) {
+            animator = new Animator();
+            animator.setRunAsFastAsPossible(true);
+            animator.add(this);
+            animator.start();
+        }
         
         addMouseListener(this);
         addMouseMotionListener(this);
@@ -46,56 +52,43 @@ public final class OpenGlWindow extends GLCanvas implements MouseListener, Mouse
     }
     
     public void dispose() {
-        animator.stop();
+        if (animator != null) {
+            animator.stop();
+        }
     }
     
     @Override
     public void mouseClicked(MouseEvent e) {
-        // TODO Auto-generated method stub
-        
     }
-    
-    boolean inDrag;
-    int x;
-    int y;
     
     @Override
     public void mousePressed(MouseEvent e) {
-        inDrag = true;
         x = e.getX();
         y = e.getY();
     }
     
     @Override
     public void mouseReleased(MouseEvent e) {
-        inDrag = false;
     }
     
     @Override
     public void mouseEntered(MouseEvent e) {
-        // TODO Auto-generated method stub
-        
     }
     
     @Override
     public void mouseExited(MouseEvent e) {
-        // TODO Auto-generated method stub
-        
     }
     
     @Override
     public void mouseDragged(MouseEvent e) {
-        
-        Logger.log((x - e.getX()) + " " + (y - e.getY()));
         oglc.rotate(x - e.getX(), y - e.getY());
         x = e.getX();
         y = e.getY();
+        repaint();
     }
     
     @Override
     public void mouseMoved(MouseEvent e) {
-        // TODO Auto-generated method stub
-        
     }
     
 }

@@ -14,6 +14,14 @@ final class Main {
     }
     
     public static void main(final String[] args) {
+        setNativeLookAndFeel();
+        
+        MainWindow mw = new MainWindow();
+        mw.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        mw.setVisible(true);
+    }
+    
+    private static void setNativeLookAndFeel() {
         try {
             UIManager.setLookAndFeel(
                     UIManager.getSystemLookAndFeelClassName());
@@ -22,9 +30,5 @@ final class Main {
             e.printStackTrace();
             System.exit(-1);
         }
-        
-        MainWindow mw = new MainWindow();
-        mw.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        mw.setVisible(true);
     }
 }

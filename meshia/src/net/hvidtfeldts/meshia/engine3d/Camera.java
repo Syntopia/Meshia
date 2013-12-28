@@ -40,6 +40,15 @@ public class Camera {
     
     public static float[] multiply(float[] m, float[] v) {
         return new float[] {
+                m[0] * v[0] + m[1 + 0] * v[1] + m[2 + 0] * v[2] + m[3],
+                m[0 + 4] * v[0] + m[1 + 4] * v[1] + m[2 + 4] * v[2] + m[3 + 4],
+                m[0 + 8] * v[0] + m[1 + 8] * v[1] + m[2 + 8] * v[2] + m[3 + 8],
+                m[0 + 12] * v[0] + m[1 + 12] * v[1] + m[2 + 12] * v[2] + m[3 + 12],
+        };
+    }
+    
+    public static float[] multiply2(float[] m, float[] v) {
+        return new float[] {
                 m[0] * v[0] + m[0 + 4] * v[1] + m[0 + 8] * v[2] + m[0 + 12],
                 m[1] * v[0] + m[1 + 4] * v[1] + m[1 + 8] * v[2] + m[1 + 12],
                 m[2] * v[0] + m[2 + 4] * v[1] + m[2 + 8] * v[2] + m[2 + 12],
@@ -113,10 +122,6 @@ public class Camera {
         return new float[] { a[0] - b[0], a[1] - b[1], a[2] - b[2] };
     }
     
-    private String toString(float[] v) {
-        return String.format("[%s,%s,%s]", v[0], v[1], v[2]);
-    }
-    
     private void normalize(float[] a) {
         float l = (float) Math.sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2]);
         a[0] /= l;
@@ -125,9 +130,6 @@ public class Camera {
     }
     
     private void cross(float[] a, float[] b, float[] out) {
-        // i j k
-        // a[0] a[1] a[2]
-        // b[0] b[1] b[2]
         out[0] = a[1] * b[2] - a[2] * b[1];
         out[1] = -a[0] * b[2] + a[2] * b[0];
         out[2] = a[0] * b[1] - a[1] * b[0];
@@ -136,16 +138,16 @@ public class Camera {
     public void setMatrix(PMVMatrix m) {
         ortogonalize();
         float[] values = new float[] {
-                left[0], up[0], forward[0], pos[0],
-                left[1], up[1], forward[1], pos[1],
-                left[2], up[2], forward[2], pos[2],
-                0, 0, 0, 1,
+                left[0], up[0], forward[0], 0,
+                left[1], up[1], forward[1], 0,
+                left[2], up[2], forward[2], 0,
+                pos[0], pos[1], pos[2], 1,
         };
         
         m.glLoadMatrixf(values, 0);
     }
     
-    public void setMatrixFullShader(PMVMatrix m) {
+    public void setMatrix2(PMVMatrix m) {
         ortogonalize();
         float[] values = new float[] {
                 left[0], left[1], left[2], 0,
@@ -156,5 +158,4 @@ public class Camera {
         
         m.glLoadMatrixf(values, 0);
     }
-    
 }
