@@ -79,7 +79,7 @@ public class Box3D implements Object3D {
         
         for (int i = 0; i < ver.length; i++) {
             if (i % 3 == 2) {
-                vertices.putf(ver[i] * 6.0f - 3.0f);
+                vertices.putf(ver[i] * 6.0f - 3.0f - 5.0f);
             }
             else
                 vertices.putf(ver[i] * 0.5f - 0.25f);

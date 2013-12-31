@@ -1,6 +1,6 @@
 out vec4 fragColor;
 in vec4 frontColor;
-in vec4 rotatedNormal;
+in vec3 rotatedNormal;
 
 vec3 getLighting(vec3 color, vec3 lightDir, vec3 normal) {
 	float lambertTerm = dot(normal,lightDir);
@@ -19,6 +19,6 @@ vec3 getLighting(vec3 color, vec3 lightDir, vec3 normal) {
 void main (void)
 {
 	vec3 ambient = frontColor.xyz*0.2; 
-	fragColor.xyz = ambient+ getLighting(frontColor.xyz, vec3(0.0,1.0,1.0), rotatedNormal.xyz);
+	fragColor.xyz = ambient+ getLighting(frontColor.xyz, vec3(0.0,1.0,1.0), rotatedNormal);
 }
 

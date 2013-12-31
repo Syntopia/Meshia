@@ -31,19 +31,25 @@ public class PolygonBuilder implements Object3D {
         this.transformator = transformator;
     }
     
+    void translate(Vector3 t) {
+        for (Vector3 v : positions) {
+            v.add(t);
+        }
+    }
+    
     /**
      * Adds a vertex with position, normal, and color.
      * 
      * @return the index of the new vertex.
      */
-    int addVertex(Vector3 pos, Vector3 normal, Vector3 color) {
+    int addColorVertex(Vector3 pos, Vector3 normal, Vector3 color) {
         positions.add(pos);
         normals.add(normal);
         colors.add(color);
         return positions.size() - 1;
     }
     
-    int addVertex(Vector3 pos, Vector3 color) {
+    int addVertex(Vector3 pos, Vector3 color, Vector3 c) {
         Vector3 t = transformator.transform(pos);
         positions.add(t);
         Vector3 n = new Vector3(t);

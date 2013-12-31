@@ -35,7 +35,10 @@ public class Engine implements GLEventListener {
     private final float aspect = 1.0f;
     
     private final FloatBuffer fov = FloatBuffer.allocate(2);
+    private final FloatBuffer farNear = FloatBuffer.allocate(2);
+    
     private GLUniformData fovUniform;
+    private GLUniformData farNearUniform;
     
     private long lastTime;
     private int frames;
@@ -111,6 +114,7 @@ public class Engine implements GLEventListener {
         raytracerPmvMatrixUniform = new GLUniformData("pmvMatrix", 4, 4, raytracerMatrixStack.glGetPMvMvitMatrixf()); // P, Mv
         
         fovUniform = new GLUniformData("fov", 2, fov);
+        farNearUniform = new GLUniformData("farNear", 2, farNear);
         
         raytracerShaderState.ownUniform(raytracerPmvMatrixUniform);
         raytracerShaderState.uniform(gl, raytracerPmvMatrixUniform);
@@ -180,6 +184,7 @@ public class Engine implements GLEventListener {
         raytracerMatrixStack.update();
         raytracerShaderState.uniform(gl, raytracerPmvMatrixUniform);
         raytracerShaderState.uniform(gl, fovUniform);
+        raytracerShaderState.uniform(gl, farNearUniform);
         
         raytracerObject.draw(gl);
         raytracerShaderState.useProgram(gl, false);
@@ -229,6 +234,8 @@ public class Engine implements GLEventListener {
             final float zNear = 1f;
             final float zFar = 100f;
             fov.put(0, fov.get(1) * aspect2);
+            farNear.put(0, zFar);
+            farNear.put(1, zNear);
             
             // compute projection parameters 'normal' frustum
             final float top = (float) Math.tan(fov.get(1) * ((float) Math.PI) / 360.0f) * zNear;
@@ -267,9 +274,13 @@ public class Engine implements GLEventListener {
     }
     
     public void rotate(int i, int j) {
-        camera.rotateAboutLeft(j / 360.0f);
+        camera.rotateAboutRight(j / 360.0f);
         
         camera.rotateAboutUp(i / 360.0f);
+    }
+    
+    public void moveCamera(float x, float y, float z) {
+        camera.move(x / 3.0f, y / 3.0f, z / 3.0f);
     }
     
 }

@@ -1,6 +1,8 @@
 out vec4 fragColor;
 in vec3 dir;
+in vec3 centerDir;
 in vec3 eye;
+uniform vec2 farNear;
 out float gl_FragDepth;
 
 #define PI  3.14159265358979323846264
@@ -28,21 +30,27 @@ vec3 HSVtoRGB(vec3 hsv) {
 }
 
 
-int MaximumRaySteps = 250;
-float MinimumDistance = 0.00001;
+int MaximumRaySteps = 20;
+float MinimumDistance = 0.001;
 
 float DistanceEstimator(vec3 p) {
-	vec3 pm = mod(p,vec3(1.0));
+	vec3 pm = mod(p,vec3(3.0));
 
-	p.xy = abs(p.xy);
-	p-=vec3(0.002);
 
-	float d = length(pm-vec3(0.5))-0.1;
+	float d = 1000.0; // length(pm-vec3(0.5))-0.1;
+	d = 1000.0;
 	
-	return min(d,length(p.xy)-0.0001);
+	d = length(p-vec3(2,0,-5))-0.3;
+	
+	p+=vec3(0,0,+5);
+	d = min(d,length(p.xz)-0.1);
+	d = min(d,length(p.yz)-0.1);
+	
+	return d;
 }
 
-float trace(vec3 from, vec3 direction) {
+
+vec2 trace(vec3 from, vec3 direction) {
 	float totalDistance = 0.0;
 	int steps;
 	for (steps=0; steps < MaximumRaySteps; steps++) {
@@ -51,7 +59,7 @@ float trace(vec3 from, vec3 direction) {
 		totalDistance += distance;
 		if (distance < MinimumDistance) break;
 	}
-	return 1.0-float(steps)/float(MaximumRaySteps);
+	return vec2(1.0-float(steps)/float(MaximumRaySteps), totalDistance);
 }
 
 
@@ -60,10 +68,22 @@ void main (void)
 	gl_FragDepth = 0.99; 
 
 	vec3 nDir=normalize(dir);
+	vec3 from = eye;
 
-	float d = trace(eye,nDir);
-	if (d>0.02) {
-		fragColor = vec4(vec3(d),1.0);
+	vec2 t = trace(from,nDir);
+	if (t.x>0.00) {
+		fragColor = vec4(vec3(t.x),1.0);
+		float zFar = farNear[0];
+		float zNear = farNear[1];
+
+		
+		float a = zFar / (zFar - zNear);
+		float b = zFar * zNear / (zNear - zFar);
+		float dist = t.y *dot(normalize(centerDir),nDir);
+		float depth = (a + b / clamp(dist, zNear, zFar));
+
+		gl_FragDepth = depth;
+
 		return;
 	}
 

@@ -3,13 +3,13 @@ package net.hvidtfeldts.meshia.engine3d;
 import com.jogamp.opengl.util.PMVMatrix;
 
 public class Camera {
-    private final float[] left = new float[] { 1, 0, 0 };
+    private final float[] right = new float[] { 1, 0, 0 };
     
     private float[] up = new float[] { 0, 1, 0 };
     
-    private float[] forward = new float[] { 0, 0, 1 };
+    private float[] forward = new float[] { 0, 0, -1 };
     
-    private final float[] pos = new float[] { 0, 0, -5 };
+    private final float[] pos = new float[] { 0, 0, 0 };
     
     public void setUp(float[] up) {
         this.up = up;
@@ -31,8 +31,8 @@ public class Camera {
         ortogonalize();
     }
     
-    public void rotateAboutLeft(float angle) {
-        float[] rot = rotation(angle, left);
+    public void rotateAboutRight(float angle) {
+        float[] rot = rotation(angle, right);
         up = multiply(rot, up);
         forward = multiply(rot, forward);
         ortogonalize();
@@ -103,11 +103,18 @@ public class Camera {
         
         normalize(up);
         
-        cross(up, forward, left);
+        cross(up, forward, right);
+        negate(right);
         
         // Logger.log("Up " + toString(up) + " Forward: " + toString(forward) +
         // " Left: " + toString(left));
         
+    }
+    
+    public void negate(float[] v) {
+        v[0] = -v[0];
+        v[1] = -v[1];
+        v[2] = -v[2];
     }
     
     public float dot(float[] a, float[] b) {
@@ -137,25 +144,33 @@ public class Camera {
     
     public void setMatrix(PMVMatrix m) {
         ortogonalize();
+        
+        // For an idea of these, see: http://3dengine.org/Right-up-back_from_modelview
+        
+        // OpenGL is column-major based.
+        // So these values:
+        
         float[] values = new float[] {
-                left[0], up[0], forward[0], 0,
-                left[1], up[1], forward[1], 0,
-                left[2], up[2], forward[2], 0,
+                right[0], up[0], -forward[0], 0,
+                right[1], up[1], -forward[1], 0,
+                right[2], up[2], -forward[2], 0,
                 pos[0], pos[1], pos[2], 1,
+        
         };
+        
+        // Correspond to this matrix:
+        // [ r.x r.y r.z p.x ]
+        // [ u.x u.y u.z p.y ]
+        // [ -f.x -f.y -f.z p.z ]
+        // [ 0 0 0 1 ]
         
         m.glLoadMatrixf(values, 0);
     }
     
-    public void setMatrix2(PMVMatrix m) {
-        ortogonalize();
-        float[] values = new float[] {
-                left[0], left[1], left[2], 0,
-                up[0], up[1], up[2], 0,
-                forward[0], forward[1], forward[2], 0,
-                pos[0], pos[1], pos[2], 1,
-        };
+    public void move(float x, float y, float z) {
+        pos[0] += x;
+        pos[1] += y;
+        pos[2] += z;
         
-        m.glLoadMatrixf(values, 0);
     }
 }

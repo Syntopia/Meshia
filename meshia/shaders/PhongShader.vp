@@ -2,13 +2,13 @@
 uniform mat4 pmvMatrix[4]; 
 in vec4 vertex;
 in vec4 color;
-in vec4 normal;
+in vec3 normal;
 out vec4 frontColor;
-out vec4 rotatedNormal;
+out vec3 rotatedNormal;
 
 void main(void)
 {
 	frontColor= color;
-	rotatedNormal = pmvMatrix[3]* normal;
+	rotatedNormal = vec3(pmvMatrix[3]* vec4(normal,0.0));
 	gl_Position = pmvMatrix[0] * pmvMatrix[1] * vertex;
 }

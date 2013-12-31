@@ -2,6 +2,8 @@ package net.hvidtfeldts.meshia.engine3d;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -12,8 +14,8 @@ import javax.media.opengl.awt.GLCanvas;
 
 import com.jogamp.opengl.util.Animator;
 
-public final class OpenGlWindow extends GLCanvas implements MouseListener, MouseMotionListener {
-    public static final boolean MEASURE_FPS = false;
+public final class OpenGlWindow extends GLCanvas implements MouseListener, MouseMotionListener, KeyListener {
+    public static final boolean MEASURE_FPS = true;
     
     private static final long serialVersionUID = 1L;
     private Animator animator;
@@ -38,6 +40,7 @@ public final class OpenGlWindow extends GLCanvas implements MouseListener, Mouse
         
         addMouseListener(this);
         addMouseMotionListener(this);
+        addKeyListener(this);
     }
     
     public static OpenGlWindow createOpenGlWindow() {
@@ -89,6 +92,35 @@ public final class OpenGlWindow extends GLCanvas implements MouseListener, Mouse
     
     @Override
     public void mouseMoved(MouseEvent e) {
+    }
+    
+    @Override
+    public void keyTyped(KeyEvent e) {
+        // TODO Auto-generated method stub
+        
+    }
+    
+    @Override
+    public void keyPressed(KeyEvent e) {
+        if (e.getKeyChar() == 'a') {
+            oglc.moveCamera(1, 0, 0);
+        }
+        if (e.getKeyChar() == 'd') {
+            oglc.moveCamera(-1, 0, 0);
+        }
+        if (e.getKeyChar() == 'w') {
+            oglc.moveCamera(0, 0, 1);
+        }
+        if (e.getKeyChar() == 's') {
+            oglc.moveCamera(0, 0, -1);
+        }
+        repaint();
+    }
+    
+    @Override
+    public void keyReleased(KeyEvent e) {
+        // TODO Auto-generated method stub
+        
     }
     
 }

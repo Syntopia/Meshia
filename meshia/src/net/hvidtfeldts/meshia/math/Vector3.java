@@ -24,6 +24,12 @@ public class Vector3 {
         z /= r;
     }
     
+    public void subtract(Vector3 offset) {
+        x -= offset.x;
+        y -= offset.y;
+        z -= offset.z;
+    }
+    
     public float getX() {
         return x;
     }
@@ -34,5 +40,11 @@ public class Vector3 {
     
     public float getZ() {
         return z;
+    }
+    
+    public void add(Vector3 offset) {
+        x += offset.x;
+        y += offset.y;
+        z += offset.z;
     }
 }
