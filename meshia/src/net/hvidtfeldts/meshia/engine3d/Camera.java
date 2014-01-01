@@ -11,7 +11,7 @@ public class Camera {
     
     private final float[] pos = new float[] { 0, 0, 0 };
     
-    public void setUp(float[] up) {
+    public void setUpDir(float[] up) {
         this.up = up;
     }
     

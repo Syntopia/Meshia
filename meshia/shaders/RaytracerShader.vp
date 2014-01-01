@@ -1,32 +1,27 @@
 // Contains p, mv, inverse(mv), transpose(inv(mv)) = normalmatrix
 uniform mat4 pmvMatrix[4]; 
-uniform vec2 fov;
+uniform float fov_y_scale;
+uniform float aspect;
+
 in vec4 vertex;
+
 out vec3 dir;
 out vec3 centerDir;
 out vec3 eye;
 
-// Following Rrrola's boxplorer.
-float fov2scale(float fov){
-	return tan(radians(fov/2.0));
-}
-
 void main(void)
 {
 	gl_Position =vertex;
-	float fov_y = fov2scale(fov.y);
-	float fov_x = fov_y * (fov.x/fov.y);
-
 	mat4 mv = pmvMatrix[1];
 	
 	// The ModelView matrix (stored in pmvMatrix[1]) is layouted as follows:
-	// [  r.x  r.y  r.z p.x ]
-	// [  u.x  u.y  u.z p.y ]
-	// [ -f.x -f.y -f.z p.z ]
+	// [  r.x  r.y  r.z q.x ]
+	// [  u.x  u.y  u.z q.y ]
+	// [ -f.x -f.y -f.z q.z ]
 	// [    0    0    0   1 ]
 	
-	// Get the 'encoded' position (p), and transform to world space
+	// Get the 'encoded' position (q), and transform to world space
 	eye=-vec3(vec4(mv[3].xyz,0)*mv);
-	dir=vec3(vec4(vertex.x*fov_x,vertex.y*fov_y,-1.0,0)*mv);
+	dir=vec3(vec4(vertex.x*fov_y_scale*aspect,vertex.y*fov_y_scale,-1.0,0)*mv);
 	centerDir = vec3(vec4(0,0,-1.0,0)*mv);
 }

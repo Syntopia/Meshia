@@ -11,15 +11,16 @@ import java.awt.event.MouseMotionListener;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLCanvas;
+import javax.swing.SwingUtilities;
 
 import com.jogamp.opengl.util.Animator;
 
 public final class OpenGlWindow extends GLCanvas implements MouseListener, MouseMotionListener, KeyListener {
-    public static final boolean MEASURE_FPS = true;
+    public static final boolean MEASURE_FPS = false;
     
     private static final long serialVersionUID = 1L;
     private Animator animator;
-    private final Engine oglc;
+    private final Engine engine;
     
     private int x;
     private int y;
@@ -27,8 +28,8 @@ public final class OpenGlWindow extends GLCanvas implements MouseListener, Mouse
     private OpenGlWindow(final GLCapabilities caps) {
         super(caps);
         
-        oglc = new Engine();
-        addGLEventListener(oglc);
+        engine = new Engine();
+        addGLEventListener(engine);
         this.setBackground(Color.BLACK);
         
         if (MEASURE_FPS) {
@@ -84,7 +85,12 @@ public final class OpenGlWindow extends GLCanvas implements MouseListener, Mouse
     
     @Override
     public void mouseDragged(MouseEvent e) {
-        oglc.rotate(x - e.getX(), y - e.getY());
+        if (SwingUtilities.isLeftMouseButton(e)) {
+            engine.rotate(x - e.getX(), y - e.getY());
+        }
+        else {
+            engine.moveCamera(-(x - e.getX()) / 10.f, (y - e.getY()) / 10.f, 0.0f);
+        }
         x = e.getX();
         y = e.getY();
         repaint();
@@ -96,31 +102,27 @@ public final class OpenGlWindow extends GLCanvas implements MouseListener, Mouse
     
     @Override
     public void keyTyped(KeyEvent e) {
-        // TODO Auto-generated method stub
-        
     }
     
     @Override
     public void keyPressed(KeyEvent e) {
         if (e.getKeyChar() == 'a') {
-            oglc.moveCamera(1, 0, 0);
+            engine.moveCamera(1, 0, 0);
         }
         if (e.getKeyChar() == 'd') {
-            oglc.moveCamera(-1, 0, 0);
+            engine.moveCamera(-1, 0, 0);
         }
         if (e.getKeyChar() == 'w') {
-            oglc.moveCamera(0, 0, 1);
+            engine.moveCamera(0, 0, 1);
         }
         if (e.getKeyChar() == 's') {
-            oglc.moveCamera(0, 0, -1);
+            engine.moveCamera(0, 0, -1);
         }
         repaint();
     }
     
     @Override
     public void keyReleased(KeyEvent e) {
-        // TODO Auto-generated method stub
-        
     }
     
 }

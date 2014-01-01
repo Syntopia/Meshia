@@ -32,12 +32,12 @@ public class Engine implements GLEventListener {
     private Object3D box;
     private RaytracerObject raytracerObject;
     
-    private final float aspect = 1.0f;
-    
-    private final FloatBuffer fov = FloatBuffer.allocate(2);
     private final FloatBuffer farNear = FloatBuffer.allocate(2);
     
-    private GLUniformData fovUniform;
+    private GLUniformData fovYScaleUniform;
+    private final float fovY = 45.0f;
+    private GLUniformData aspectUniform;
+    
     private GLUniformData farNearUniform;
     
     private long lastTime;
@@ -51,8 +51,6 @@ public class Engine implements GLEventListener {
     @Override
     public void init(GLAutoDrawable glad) {
         // glad.setGL(new DebugGL2((GL2) glad.getGL()));
-        fov.put(0, 45.0f);
-        fov.put(1, 45.0f);
         
         try {
             final GL2ES2 gl = glad.getGL().getGL2ES2();
@@ -113,7 +111,15 @@ public class Engine implements GLEventListener {
         raytracerMatrixStack.glLoadIdentity();
         raytracerPmvMatrixUniform = new GLUniformData("pmvMatrix", 4, 4, raytracerMatrixStack.glGetPMvMvitMatrixf()); // P, Mv
         
-        fovUniform = new GLUniformData("fov", 2, fov);
+        fovYScaleUniform = new GLUniformData("fov_y_scale", 1);
+        aspectUniform = new GLUniformData("aspect", 1);
+        
+        // scale = tan(radians(fov/2.0));
+        float fovYScale = (float) Math.tan((Math.PI * fovY / 360.0));
+        fovYScaleUniform.setData(fovYScale);
+        
+        aspectUniform.setData(1.0f);
+        
         farNearUniform = new GLUniformData("farNear", 2, farNear);
         
         raytracerShaderState.ownUniform(raytracerPmvMatrixUniform);
@@ -183,7 +189,8 @@ public class Engine implements GLEventListener {
         setCamera(raytracerMatrixStack, true);
         raytracerMatrixStack.update();
         raytracerShaderState.uniform(gl, raytracerPmvMatrixUniform);
-        raytracerShaderState.uniform(gl, fovUniform);
+        raytracerShaderState.uniform(gl, fovYScaleUniform);
+        raytracerShaderState.uniform(gl, aspectUniform);
         raytracerShaderState.uniform(gl, farNearUniform);
         
         raytracerObject.draw(gl);
@@ -230,18 +237,20 @@ public class Engine implements GLEventListener {
             // Setup frustum (as in RedSquareES2 JOGL demo)
             
             // compute projection parameters 'normal' perspective
-            final float aspect2 = ((float) width / (float) height) / aspect;
+            final float aspect = (float) width / (float) height;
             final float zNear = 1f;
             final float zFar = 100f;
-            fov.put(0, fov.get(1) * aspect2);
+            
+            aspectUniform.setData(aspect);
+            
             farNear.put(0, zFar);
             farNear.put(1, zNear);
             
             // compute projection parameters 'normal' frustum
-            final float top = (float) Math.tan(fov.get(1) * ((float) Math.PI) / 360.0f) * zNear;
+            final float top = (float) Math.tan(fovY * ((float) Math.PI) / 360.0f) * zNear;
             final float bottom = -1.0f * top;
-            final float left = aspect2 * bottom;
-            final float right = aspect2 * top;
+            final float left = aspect * bottom;
+            final float right = aspect * top;
             
             matrixStack.glFrustumf(left, right, bottom, top, zNear, zFar);
             shaderState.uniform(gl, pmvMatrixUniform);

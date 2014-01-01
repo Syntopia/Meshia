@@ -4,7 +4,7 @@ import net.hvidtfeldts.meshia.math.Vector3;
 
 public class CubeProjectedSphere extends PolygonBuilder {
     
-    private static Vector3 ZERO = new Vector3(0, 0, 0);
+    private static final Vector3 ZERO = new Vector3(0, 0, 0);
     
     public CubeProjectedSphere() {
         final Vector3 offset = new Vector3(0, 0, -5);

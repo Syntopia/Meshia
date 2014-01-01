@@ -1,9 +1,11 @@
 out vec4 fragColor;
+out float gl_FragDepth;
+
 in vec3 dir;
 in vec3 centerDir;
 in vec3 eye;
+
 uniform vec2 farNear;
-out float gl_FragDepth;
 
 #define PI  3.14159265358979323846264
 
