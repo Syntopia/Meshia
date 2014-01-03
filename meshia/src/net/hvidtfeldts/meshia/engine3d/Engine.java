@@ -246,13 +246,8 @@ public class Engine implements GLEventListener {
             farNear.put(0, zFar);
             farNear.put(1, zNear);
             
-            // compute projection parameters 'normal' frustum
-            final float top = (float) Math.tan(fovY * ((float) Math.PI) / 360.0f) * zNear;
-            final float bottom = -1.0f * top;
-            final float left = aspect * bottom;
-            final float right = aspect * top;
-            
-            matrixStack.glFrustumf(left, right, bottom, top, zNear, zFar);
+            matrixStack.gluPerspective(fovY, aspect, zNear, zFar);
+            System.out.println(matrixStack.toString());
             shaderState.uniform(gl, pmvMatrixUniform);
             shaderState.useProgram(gl, false);
             
@@ -260,7 +255,7 @@ public class Engine implements GLEventListener {
             raytracerMatrixStack.glMatrixMode(PMVMatrix.GL_PROJECTION);
             raytracerMatrixStack.glLoadIdentity();
             
-            raytracerMatrixStack.glFrustumf(left, right, bottom, top, zNear, zFar);
+            raytracerMatrixStack.gluPerspective(fovY, aspect, zNear, zFar);
             raytracerShaderState.uniform(gl, raytracerPmvMatrixUniform);
             raytracerShaderState.useProgram(gl, false);
             

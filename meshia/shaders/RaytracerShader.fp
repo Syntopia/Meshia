@@ -2,7 +2,7 @@ out vec4 fragColor;
 out float gl_FragDepth;
 
 in vec3 dir;
-in vec3 centerDir;
+in vec3 cameraForward;
 in vec3 eye;
 
 uniform vec2 farNear;
@@ -32,7 +32,7 @@ vec3 HSVtoRGB(vec3 hsv) {
 }
 
 
-int MaximumRaySteps = 20;
+int MaximumRaySteps = 120;
 float MinimumDistance = 0.001;
 
 float DistanceEstimator(vec3 p) {
@@ -41,13 +41,13 @@ float DistanceEstimator(vec3 p) {
 
 	float d = 1000.0; // length(pm-vec3(0.5))-0.1;
 	d = 1000.0;
-	
+
 	d = length(p-vec3(2,0,-5))-0.3;
-	
+
 	p+=vec3(0,0,+5);
 	d = min(d,length(p.xz)-0.1);
 	d = min(d,length(p.yz)-0.1);
-	
+
 	return d;
 }
 
@@ -69,29 +69,22 @@ void main (void)
 {
 	gl_FragDepth = 0.99; 
 
-	vec3 nDir=normalize(dir);
-	vec3 from = eye;
-
-	vec2 t = trace(from,nDir);
+	vec3 rayDirection=normalize(dir);
+	
+	vec2 t = trace(eye,rayDirection);
 	if (t.x>0.00) {
 		fragColor = vec4(vec3(t.x),1.0);
 		float zFar = farNear[0];
 		float zNear = farNear[1];
-
-		
-		float a = zFar / (zFar - zNear);
-		float b = zFar * zNear / (zNear - zFar);
-		float dist = t.y *dot(normalize(centerDir),nDir);
-		float depth = (a + b / clamp(dist, zNear, zFar));
-
-		gl_FragDepth = depth;
-
+		float eyeHitZ = -t.y *dot(normalize(cameraForward),rayDirection);
+		float ndcDepth = ((zFar+zNear) + (2.0*zFar*zNear)/eyeHitZ)/(zFar-zNear);
+		gl_FragDepth =((gl_DepthRange.diff * ndcDepth) + gl_DepthRange.near + gl_DepthRange.far) / 2.0;
 		return;
 	}
 
-	fragColor = vec4(abs(dot(nDir, vec3(1,0,0))), abs(dot(nDir, vec3(0,1,0))), abs(dot(nDir, vec3(0,0,1))),1.0); ;
+	fragColor = vec4(abs(dot(rayDirection, vec3(1,0,0))), abs(dot(rayDirection, vec3(0,1,0))), abs(dot(rayDirection, vec3(0,0,1))),1.0); ;
 
-	vec2 longlat = spherical(nDir);
+	vec2 longlat = spherical(rayDirection);
 	if (mod(abs(longlat.x),0.1)<0.01 || mod(abs(longlat.y),0.1)<0.01) {
 		fragColor = vec4(0.0,0.0,0.0,1.0);
 		return;

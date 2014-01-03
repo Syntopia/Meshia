@@ -11,4 +11,8 @@ void main(void)
 	frontColor= color;
 	rotatedNormal = vec3(pmvMatrix[3]* vec4(normal,0.0));
 	gl_Position = pmvMatrix[0] * pmvMatrix[1] * vertex;
+	float a = (pmvMatrix[1] * vertex).z;
+	if (a<-2.0) {
+		frontColor = vec4(1,0,0,0);
+	}
 }
