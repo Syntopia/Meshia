@@ -1,18 +1,30 @@
 package net.hvidtfeldts.meshia.engine3d;
 
+import java.awt.FlowLayout;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
+import javax.media.opengl.DebugGL2;
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLUniformData;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
 
 import net.hvidtfeldts.utils.Logger;
 
 import com.jogamp.opengl.JoglVersion;
+import com.jogamp.opengl.util.GLPixelStorageModes;
 import com.jogamp.opengl.util.PMVMatrix;
+import com.jogamp.opengl.util.awt.ImageUtil;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.glsl.ShaderState;
@@ -30,6 +42,7 @@ public class Engine implements GLEventListener {
     
     private Object3D sphere;
     private Object3D box;
+    private Object3D crossSection;
     private RaytracerObject raytracerObject;
     
     private final FloatBuffer farNear = FloatBuffer.allocate(2);
@@ -50,11 +63,11 @@ public class Engine implements GLEventListener {
     
     @Override
     public void init(GLAutoDrawable glad) {
-        // glad.setGL(new DebugGL2((GL2) glad.getGL()));
+        glad.setGL(new DebugGL2((GL2) glad.getGL()));
         
         try {
             final GL2ES2 gl = glad.getGL().getGL2ES2();
-            
+            this.gl = gl;
             Logger.log("Chosen GLCapabilities: " + glad.getChosenGLCapabilities());
             Logger.log("INIT GL IS: " + gl.getClass().getName());
             Logger.log(JoglVersion.getGLStrings(gl, null, false).toString());
@@ -126,6 +139,20 @@ public class Engine implements GLEventListener {
         raytracerShaderState.uniform(gl, raytracerPmvMatrixUniform);
     }
     
+    private void initializeFlatShaders(final GL2ES2 gl, ShaderState shaderState) {
+        final ShaderCode vp0 = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, this.getClass(), "shaders",
+                "shader/bin", "CrossSectionShader", true);
+        final ShaderCode fp0 = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, this.getClass(), "shaders",
+                "shader/bin", "CrossSectionShader", true);
+        vp0.defaultShaderCustomization(gl, true, true);
+        fp0.defaultShaderCustomization(gl, true, true);
+        final ShaderProgram sp0 = new ShaderProgram();
+        check(sp0.add(gl, vp0, Logger.getLoggerWarnStream()));
+        check(sp0.add(gl, fp0, Logger.getLoggerWarnStream()));
+        check(shaderState.attachShaderProgram(gl, sp0, true));
+        
+    }
+    
     private void initializeShaders(final GL2ES2 gl) {
         final ShaderCode vp0 = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, this.getClass(), "shaders",
                 "shader/bin", "PhongShader", true);
@@ -171,6 +198,7 @@ public class Engine implements GLEventListener {
         }
         
         final GL2ES2 gl = glad.getGL().getGL2ES2();
+        this.gl = gl;
         gl.glClearColor(0, 0, 0, 0);
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         
@@ -285,6 +313,88 @@ public class Engine implements GLEventListener {
     
     public void moveCamera(float x, float y, float z) {
         camera.move(x / 3.0f, y / 3.0f, z / 3.0f);
+    }
+    
+    GL2ES2 gl;
+    
+    public void takeSnapshot() {
+        
+        // GL gl = GLContext.getCurrentGL();
+        
+        int[] color = new int[] { -1 };
+        int[] depth = new int[] { -1 };
+        int[] fbo = new int[] { -1 };
+        gl.getContext().makeCurrent();
+        gl.glGenTextures(1, color, 0);
+        Logger.log(color[0]);
+        int width = 500;
+        int height = 500;
+        gl.glBindTexture(GL.GL_TEXTURE_2D, color[0]);
+        gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
+        gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
+        gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA, width, height, 0, GL.GL_BGRA, GL.GL_UNSIGNED_BYTE, null);
+        gl.glBindTexture(GL.GL_TEXTURE_2D, 0);
+        
+        gl.glGenRenderbuffers(1, depth, 0);
+        gl.glBindRenderbuffer(GL.GL_RENDERBUFFER, depth[0]);
+        gl.glRenderbufferStorage(GL.GL_RENDERBUFFER, GL2ES2.GL_DEPTH_COMPONENT, width, height);
+        gl.glBindRenderbuffer(GL.GL_RENDERBUFFER, 0);
+        
+        gl.glGenFramebuffers(1, fbo, 0);
+        gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, fbo[0]);
+        gl.glFramebufferTexture2D(GL.GL_FRAMEBUFFER, GL.GL_COLOR_ATTACHMENT0, GL.GL_TEXTURE_2D, color[0], 0);
+        gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, GL.GL_DEPTH_ATTACHMENT, GL.GL_RENDERBUFFER, depth[0]);
+        gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0);
+        
+        gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, fbo[0]);
+        Logger.log("Created FBO: Color=" + color[0] + " depth=" + depth[0] + " fbo=" + fbo[0]);
+        // Do some drawing here.
+        gl.glViewport(0, 0, width, height);
+        gl.glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+        
+        gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+        
+        ShaderState shaderState = new ShaderState();
+        shaderState.setVerbose(true);
+        initializeFlatShaders(gl, shaderState);
+        crossSection = new CrossSection2D();
+        crossSection.init(gl, shaderState);
+        
+        shaderState.useProgram(gl, true);
+        crossSection.draw(gl);
+        shaderState.useProgram(gl, false);
+        
+        // Based on JOGL Screenshot.java
+        boolean alpha = false;
+        int bufImgType = (alpha ? BufferedImage.TYPE_4BYTE_ABGR : BufferedImage.TYPE_3BYTE_BGR);
+        int readbackType = (alpha ? GL2.GL_ABGR_EXT : GL2GL3.GL_BGR);
+        BufferedImage image = new BufferedImage(width, height, bufImgType);
+        
+        // Set up pixel storage modes
+        GLPixelStorageModes psm = new GLPixelStorageModes();
+        psm.setPackAlignment(gl, 1);
+        
+        // read the BGR values into the image
+        gl.glReadPixels(0, 0, width, height, readbackType,
+                GL.GL_UNSIGNED_BYTE,
+                ByteBuffer.wrap(((DataBufferByte) image.getRaster().getDataBuffer()).getData()));
+        
+        // Restore pixel storage modes
+        psm.restore(gl);
+        
+        if (gl.getContext().getGLDrawable().isGLOriented()) {
+            // Must flip BufferedImage vertically for correct results
+            ImageUtil.flipImageVertically(image);
+        }
+        
+        gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0);
+        
+        JFrame frame = new JFrame();
+        frame.getContentPane().setLayout(new FlowLayout());
+        frame.getContentPane().add(new JLabel(new ImageIcon(image)));
+        frame.pack();
+        frame.setVisible(true);
+        
     }
     
 }

@@ -109,14 +109,17 @@ public final class OpenGlWindow extends GLCanvas implements MouseListener, Mouse
         if (e.getKeyChar() == 'a') {
             engine.moveCamera(1, 0, 0);
         }
-        if (e.getKeyChar() == 'd') {
+        else if (e.getKeyChar() == 'd') {
             engine.moveCamera(-1, 0, 0);
         }
-        if (e.getKeyChar() == 'w') {
+        else if (e.getKeyChar() == 'w') {
             engine.moveCamera(0, 0, 1);
         }
-        if (e.getKeyChar() == 's') {
+        else if (e.getKeyChar() == 's') {
             engine.moveCamera(0, 0, -1);
+        }
+        else if (e.getKeyChar() == '1') {
+            engine.takeSnapshot();
         }
         repaint();
     }

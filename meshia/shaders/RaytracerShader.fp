@@ -84,7 +84,7 @@ void main (void)
 
 	fragColor = vec4(abs(dot(rayDirection, vec3(1,0,0))), abs(dot(rayDirection, vec3(0,1,0))), abs(dot(rayDirection, vec3(0,0,1))),1.0); ;
 
-	vec2 longlat = spherical(rayDirection);
+	vec2 longlat = spherical(rayDirection.yzx);
 	if (mod(abs(longlat.x),0.1)<0.01 || mod(abs(longlat.y),0.1)<0.01) {
 		fragColor = vec4(0.0,0.0,0.0,1.0);
 		return;
