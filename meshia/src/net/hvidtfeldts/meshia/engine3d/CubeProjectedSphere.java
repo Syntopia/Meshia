@@ -8,7 +8,7 @@ public class CubeProjectedSphere extends PolygonBuilder {
     
     public CubeProjectedSphere() {
         final Vector3 offset = new Vector3(0, 0, -5);
-        int n = 5;
+        int n = 15;
         float dx = 1.0f / n;
         float dy = 1.0f / n;
         

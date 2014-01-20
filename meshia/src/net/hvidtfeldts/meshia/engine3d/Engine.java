@@ -85,7 +85,8 @@ public class Engine implements GLEventListener {
             initializeShaders(gl);
             
             sphere = new CubeProjectedSphere();
-            box = new Box3D();
+            // box = new Box3D();
+            box = new Hemesh3D();
             sphere.init(gl, shaderState);
             box.init(gl, shaderState);
             
