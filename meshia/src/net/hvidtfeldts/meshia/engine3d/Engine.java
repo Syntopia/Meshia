@@ -41,7 +41,7 @@ public class Engine implements GLEventListener {
     private GLUniformData raytracerPmvMatrixUniform;
     
     private Object3D sphere;
-    private Object3D box;
+    private Hemesh3D hemesh;
     private Object3D crossSection;
     private RaytracerObject raytracerObject;
     
@@ -86,9 +86,9 @@ public class Engine implements GLEventListener {
             
             sphere = new CubeProjectedSphere();
             // box = new Box3D();
-            box = new Hemesh3D();
+            hemesh = new Hemesh3D();
             sphere.init(gl, shaderState);
-            box.init(gl, shaderState);
+            hemesh.init(gl, shaderState);
             
             raytracerObject = new RaytracerObject();
             raytracerObject.init(gl, raytracerShaderState);
@@ -210,7 +210,7 @@ public class Engine implements GLEventListener {
         shaderState.uniform(gl, pmvMatrixUniform);
         
         sphere.draw(gl);
-        box.draw(gl);
+        hemesh.draw(gl);
         shaderState.useProgram(gl, false);
         
         raytracerShaderState.useProgram(gl, true);
@@ -398,4 +398,11 @@ public class Engine implements GLEventListener {
         
     }
     
+    public Camera getCamera() {
+        return camera;
+    }
+    
+    public Hemesh3D getMesh() {
+        return hemesh;
+    }
 }

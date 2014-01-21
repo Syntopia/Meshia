@@ -6,5 +6,6 @@
 	<classpathentry kind="lib" path="lib/jogl-all.jar" sourcepath="F:/Meshia/jogamp-all-platforms/jogl-java-src.zip"/>
 	<classpathentry kind="lib" path="lib/gluegen-rt.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/hemesh"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/sunflow"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

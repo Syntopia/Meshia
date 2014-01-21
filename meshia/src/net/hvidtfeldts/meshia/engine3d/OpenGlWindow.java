@@ -13,6 +13,13 @@ import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLCanvas;
 import javax.swing.SwingUtilities;
 
+import net.hvidtfeldts.meshia.sunflow.SunflowRenderer;
+import net.hvidtfeldts.meshia.sunflow.TestScene;
+import net.hvidtfeldts.utils.Logger;
+
+import org.sunflow.math.Point3;
+import org.sunflow.math.Vector3;
+
 import com.jogamp.opengl.util.Animator;
 
 public final class OpenGlWindow extends GLCanvas implements MouseListener, MouseMotionListener, KeyListener {
@@ -120,6 +127,25 @@ public final class OpenGlWindow extends GLCanvas implements MouseListener, Mouse
         }
         else if (e.getKeyChar() == '1') {
             engine.takeSnapshot();
+        }
+        else if (e.getKeyChar() == '2') {
+            TestScene ts = new TestScene();
+            float[] pos = engine.getCamera().getPosInWorldCoords();
+            float[] cpos = engine.getCamera().getPosInCameraCoords();
+            float[] up = engine.getCamera().getUp();
+            float[] forward = engine.getCamera().getForward();
+            ts.up = new Vector3(up[0], up[1], up[2]);
+            ts.eye = new Point3(pos[0], pos[1], pos[2]);
+            ts.target = new Point3(pos[0] + forward[0], pos[1] + forward[1], pos[2] + forward[2]);
+            Logger.log(String.format("Forward: %s %s %s", forward[0], forward[1], forward[2]));
+            Logger.log(String.format("Pos: %s %s %s", pos[0], pos[1], pos[2]));
+            Logger.log(String.format("CPos: %s %s %s", cpos[0], cpos[1], cpos[2]));
+            
+            ts.mesh = engine.getMesh();
+            ts.width = this.getWidth();
+            ts.height = this.getHeight();
+            
+            SunflowRenderer.render(ts);
         }
         repaint();
     }

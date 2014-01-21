@@ -18,16 +18,16 @@ vec3 getReflectColor(vec3 rayDirection) {
 
 vec3 getLighting(vec3 color, vec3 lightDir, vec3 normal) {
 	float lambertTerm = dot(normalize(normal),normalize(lightDir));
-	return getReflectColor(-worldNormal);
+//	return getReflectColor(-worldNormal);
 	if(lambertTerm > 0.0)
 	{
 		vec3 eyeVec= vec3(1.0,0.0,0.0);
 		vec3 E = normalize(eyeVec);
 		vec3 R = reflect(-lightDir, normal);
 		float specular = 0.1*pow( clamp(dot(R, E), 0.0,1.0), 150.0);
-		return 0.6*color * vec3(1.0,0.8,0.8) * lambertTerm +  vec3(1.0,1.0,1.0) * specular
-			+
-				0.3* getReflectColor(worldNormal);
+		return 0.6*color * vec3(1.0,0.8,0.8) * lambertTerm +  vec3(1.0,1.0,1.0) * specular;
+		//	+
+		//		0.3* getReflectColor(worldNormal);
 	}
 	return vec3(0);
 }

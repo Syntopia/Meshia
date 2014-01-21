@@ -11,6 +11,31 @@ public class Camera {
     
     private final float[] pos = new float[] { 0, 0, 0 };
     
+    public float[] getRight() {
+        return right;
+    }
+    
+    public float[] getUp() {
+        return up;
+    }
+    
+    public float[] getPosInCameraCoords() {
+        return pos;
+    }
+    
+    public float[] getPosInWorldCoords() {
+        // [ r.x r.y r.z q.x ]
+        // [ u.x u.y u.z q.y ]
+        // [ -f.x -f.y -f.z q.z ]
+        // [ 0 0 0 1 ]
+        // eye = -(modelView[3].xyz)*mat3(modelView);
+        return new float[] {
+                -pos[0] * right[0] - pos[1] * up[0] + pos[2] * forward[0],
+                -pos[0] * right[1] - pos[1] * up[1] + pos[2] * forward[1],
+                -pos[0] * right[2] - pos[1] * up[2] + pos[2] * forward[2],
+        };
+    }
+    
     public void setUpDir(float[] up) {
         this.up = up;
     }
@@ -172,5 +197,9 @@ public class Camera {
         pos[1] += y;
         pos[2] += z;
         
+    }
+    
+    public float[] getForward() {
+        return forward;
     }
 }
