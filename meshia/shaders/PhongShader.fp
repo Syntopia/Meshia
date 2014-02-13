@@ -34,7 +34,16 @@ vec3 getLighting(vec3 color, vec3 lightDir, vec3 normal) {
 
 void main (void)
 {
-	vec3 ambient = frontColor.xyz*0.2; 
-	fragColor.xyz = ambient+ getLighting(frontColor.xyz, vec3(0.0,1.0,1.0), rotatedNormal);
+	vec3 ld =  vec3(0.0,1.0,1.0);
+	if (dot(rotatedNormal, ld)>0) {
+		vec3 ambient = frontColor.xyz*0.2; 
+		fragColor.xyz = ambient+ getLighting(frontColor.xyz,ld, rotatedNormal);
+	} else {
+		// backside
+		vec3 c = frontColor.xyz; //vec3(0.0,0.6,0.1);
+		vec3 ambient = c*0.2; 
+			
+		fragColor.xyz = ambient+ getLighting(c, ld, -rotatedNormal);
+     }
 }
 

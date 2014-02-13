@@ -1,0 +1,87 @@
+gix {
+   type ambocc
+   bright { "sRGB nonlinear" 1.0 0.8 0.8 } 
+   dark { "sRGB nonlinear" 0 0 0 }
+   samples 64
+   maxdist 1.0 
+}
+
+
+gi {
+ type igi
+  samples 64
+  sets 1
+   b 0.01
+ bias-samples 0
+   }
+
+gix {
+ type irr-cache
+  samples 512
+   tolerance 0.01
+   spacing 0.05 5.0
+   global 1000000 grid 100 0.75
+   }
+
+gi {
+   type path
+   samples 32
+}
+
+
+shader {
+	name "meshshader"
+	type phong
+	diff { "sRGB nonlinear" 1.0 1.0 1.0 }
+	
+	spec { "sRGB nonlinear" 0.1 0.1 0.1 } 250
+}
+
+shaderx {
+	name "meshshader"
+	type phong
+	diff { "sRGB nonlinear" 1.0 1.0 1.0 }
+	spec { "sRGB nonlinear" 0.1 0.0 0.0 } 600
+}
+
+shaderx {
+	name "meshshader"
+		type amb-occ
+	bright  { "sRGB nonlinear" 1 1 1 }
+	dark     0 0 0
+	samples  64
+	dist     1
+}
+
+%% scene background - comment out if not needed
+background {
+   color  { "sRGB nonlinear" 0.2 0.2 0.2 }
+}
+
+light {
+	type spherical
+	color { "sRGB nonlinear" 0.9 0.9 1.0 }
+	radiance 10
+	center 0 0 -5
+	radius 1.3
+	samples 64
+}
+
+light {
+	type spherical
+	color { "sRGB nonlinear" 1 0.8 0.7 }
+	radiance 10
+	center 0 5 -10
+	radius 1.3
+	samples 64
+}
+
+
+lightx {
+type sunsky
+up 0 0 1
+east 0 1 0 
+sundir 0.5 0.2 0.8
+turbidity 6.0
+samples 128
+}

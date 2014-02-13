@@ -47,4 +47,71 @@ public class Vector3 {
         y += offset.y;
         z += offset.z;
     }
+    
+    /**
+     * Linear interpolation between p1 (m=0) and p2 (m=1)
+     */
+    public static Vector3 interpolate(Vector3 p1, Vector3 p2, float m) {
+        return new Vector3(
+                p1.x * (1 - m) + p2.x * m,
+                p1.y * (1 - m) + p2.y * m,
+                p1.z * (1 - m) + p2.z * m);
+    }
+    
+    /**
+     * Linear component-wise interpolation between p1 (c=0) and p2 (c=1)
+     */
+    public static Vector3 interpolate(Vector3 p1, Vector3 p2, float x, float y, float z) {
+        return new Vector3(
+                p1.x * (1 - x) + p2.x * x,
+                p1.y * (1 - y) + p2.y * y,
+                p1.z * (1 - z) + p2.z * z);
+    }
+    
+    public float getLength() {
+        return (float) Math.sqrt(x * x + y * y + z * z);
+    }
+    
+    public static Vector3 cross(Vector3 v1, Vector3 v2) {
+        return new Vector3(
+                v1.y * v2.z - v2.y * v1.z,
+                v2.x * v1.z - v1.x * v2.z,
+                v1.x * v2.y - v2.x * v1.y);
+    }
+    
+    @Override
+    public String toString() {
+        return "Vector3 [x=" + x + ", y=" + y + ", z=" + z + "]";
+    }
+    
+    public static Vector3 add(Vector3 a, Vector3 b) {
+        return new Vector3(a.x + b.x, a.y + b.y, a.z + b.z);
+    }
+    
+    public static Vector3 sub(Vector3 a, Vector3 b) {
+        return new Vector3(a.x - b.x, a.y - b.y, a.z - b.z);
+    }
+    
+    public static Vector3 getPlaneNormal(Vector3 p1, Vector3 p2, Vector3 p3) {
+        return cross(sub(p2, p1), sub(p3, p1));
+    }
+    
+    public void multiply(float f) {
+        x *= f;
+        y *= f;
+        z *= f;
+    }
+    
+    public void setX(float x) {
+        this.x = x;
+    }
+    
+    public void setY(float y) {
+        this.y = y;
+    }
+    
+    public void setZ(float z) {
+        this.z = z;
+    }
+    
 }

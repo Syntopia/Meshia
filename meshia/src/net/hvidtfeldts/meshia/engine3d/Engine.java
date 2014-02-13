@@ -19,6 +19,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
+import net.hvidtfeldts.meshia.math.Vector3;
 import net.hvidtfeldts.utils.Logger;
 
 import com.jogamp.opengl.JoglVersion;
@@ -41,6 +42,7 @@ public class Engine implements GLEventListener {
     private GLUniformData raytracerPmvMatrixUniform;
     
     private Object3D sphere;
+    private SunflowRenderable isoSurface;
     private Hemesh3D hemesh;
     private Object3D crossSection;
     private RaytracerObject raytracerObject;
@@ -87,7 +89,12 @@ public class Engine implements GLEventListener {
             sphere = new CubeProjectedSphere();
             // box = new Box3D();
             hemesh = new Hemesh3D();
+            int res = 100;
+            SimpleMarchingCubes simpleMarchingCubes = new SimpleMarchingCubes(0, new Vector3(-1, -1, -1), new Vector3(1, 1, 1), res,
+                    res, res);
+            isoSurface = simpleMarchingCubes.getObject3D();
             sphere.init(gl, shaderState);
+            isoSurface.init(gl, shaderState);
             hemesh.init(gl, shaderState);
             
             raytracerObject = new RaytracerObject();
@@ -209,8 +216,9 @@ public class Engine implements GLEventListener {
         matrixStack.update();
         shaderState.uniform(gl, pmvMatrixUniform);
         
-        sphere.draw(gl);
-        hemesh.draw(gl);
+        // sphere.draw(gl);
+        isoSurface.draw(gl);
+        // hemesh.draw(gl);
         shaderState.useProgram(gl, false);
         
         raytracerShaderState.useProgram(gl, true);
@@ -307,9 +315,9 @@ public class Engine implements GLEventListener {
     }
     
     public void rotate(int i, int j) {
-        camera.rotateAboutRight(j / 360.0f);
+        camera.rotateAboutRight(j / 100.0f);
         
-        camera.rotateAboutUp(i / 360.0f);
+        camera.rotateAboutUp(i / 100.0f);
     }
     
     public void moveCamera(float x, float y, float z) {
@@ -402,7 +410,7 @@ public class Engine implements GLEventListener {
         return camera;
     }
     
-    public Hemesh3D getMesh() {
-        return hemesh;
+    public SunflowRenderable getMesh() {
+        return isoSurface;
     }
 }

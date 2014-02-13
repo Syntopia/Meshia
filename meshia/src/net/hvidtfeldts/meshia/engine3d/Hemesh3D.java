@@ -1,6 +1,7 @@
 package net.hvidtfeldts.meshia.engine3d;
 
 import java.nio.IntBuffer;
+import java.util.List;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
@@ -13,17 +14,17 @@ import org.sunflow.core.ParameterList.InterpolationType;
 import org.sunflow.core.primitive.TriangleMesh;
 
 import wblut.geom.WB_Normal3d;
-import wblut.hemesh.HEC_Dodecahedron;
-import wblut.hemesh.HEM_Extrude;
-import wblut.hemesh.HEM_Lattice;
-import wblut.hemesh.HES_CatmullClark;
+import wblut.geom.WB_Point3d;
+import wblut.hemesh.HEC_Icosahedron;
+import wblut.hemesh.HE_Face;
 import wblut.hemesh.HE_Mesh;
+import wblut.hemesh.HE_Selection;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
-public class Hemesh3D implements Object3D {
+public class Hemesh3D implements Object3D, SunflowRenderable {
     private GLArrayDataServer vertices;
     private GLArrayDataServer normals;
     private GLArrayDataServer colors;
@@ -39,30 +40,32 @@ public class Hemesh3D implements Object3D {
     @Override
     public void init(final GL2ES2 gl, ShaderState st) {
         
-        // HE_Mesh mesh = (new HEC_Geodesic(1, 1)).create();
-        HE_Mesh mesh = (new HEC_Dodecahedron(1)).create();
-        HES_CatmullClark cc = new HES_CatmullClark();
-        mesh.subdivide(cc, 1);
-        // HES_PlanarMidEdge cc = new HES_PlanarMidEdge();
-        // HES_DooSabin cc = new HES_DooSabin();
-        mesh.modify(new HEM_Lattice().setDepth(0.5).setWidth(0.5));
+        HE_Mesh mesh;
         
-        HEM_Extrude extrude = new HEM_Extrude().setDistance(1.72678);
-        mesh.modify(extrude);
-        
-        // mesh.subdivide(cc, 1);
-        // HE_Mesh mesh = (new HEC_Box(1, 1, 1, 1, 1, 1)).create();
-        // mesh.modify(new HEM_Lattice().setDepth(0.1).setWidth(0.6));
-        
-        mesh.subdivide(cc, 2);
-        
-        // mesh.modify(si);
-        // mesh.subdivide(cc, 1);
-        // extrude = new HEM_Extrude().setDistance(0.08);
-        // mesh.modify(extrude);
-        // mesh.subdivide(cc, 1);
-        
-        // mesh.subdivide(cc, 1);
+        if (true) {
+            
+            mesh = (new HEC_Icosahedron()).create();
+            // mesh = (new HEC_Cube(0.1, 2, 2, 2)).create();
+            double a = 1;
+            double factor = 1.5;
+            for (int i = 0; i < 0; i++) {
+                List<HE_Face> facesAsList = mesh.getFacesAsList();
+                for (HE_Face hf : facesAsList) {
+                    WB_Point3d faceCenter = hf.getFaceCenter();
+                    WB_Normal3d faceNormal = hf.getFaceNormal();
+                    HE_Selection triSplitFace = mesh.triSplitFace(hf, a);
+                }
+                
+                a /= -factor;
+            }
+            mesh.clean();
+            
+            // mesh = (new HEC_Johnson(24, 0.5)).create();
+            // mesh.modify(new HEM_ChamferCorners().setDistance(0.172678));
+            // mesh.modify(new HEM_Extrude().setDistance(0.52372678));
+            // mesh.subdivide(new HES_CatmullClark2(), 2);
+            // mesh.subdivide(new HES_CatmullClark(), 2);
+        }
         
         gl.glGenBuffers(1, indexBuffer, 0);
         float[][] v = mesh.getVerticesAsFloat();
@@ -198,6 +201,10 @@ public class Hemesh3D implements Object3D {
         normals.enableBuffer(gl, false);
     }
     
+    /* (non-Javadoc)
+     * @see net.hvidtfeldts.meshia.engine3d.SunflowRenderable#getTriangleMesh(org.sunflow.SunflowAPI)
+     */
+    @Override
     public TriangleMesh getTriangleMesh(SunflowAPI api) {
         TriangleMesh tm = new TriangleMesh();
         ParameterList pl = new ParameterList();

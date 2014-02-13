@@ -32,7 +32,7 @@ import wblut.math.WB_Parameter;
  * 
  */
 
-public class HES_CatmullClark extends HES_Subdividor {
+public class HES_CatmullClark2 extends HES_Subdividor {
     
     /** Keep edges?. */
     private boolean keepEdges;
@@ -46,7 +46,7 @@ public class HES_CatmullClark extends HES_Subdividor {
     /**
      * Instantiates a new hE s_ catmull clark.
      */
-    public HES_CatmullClark() {
+    public HES_CatmullClark2() {
         super();
         blendFactor = new WB_ConstantParameter<Double>(1.0);
         
@@ -59,7 +59,7 @@ public class HES_CatmullClark extends HES_Subdividor {
      *            true/false
      * @return self
      */
-    public HES_CatmullClark setKeepEdges(final boolean b) {
+    public HES_CatmullClark2 setKeepEdges(final boolean b) {
         keepEdges = b;
         return this;
         
@@ -72,7 +72,7 @@ public class HES_CatmullClark extends HES_Subdividor {
      *            true/false
      * @return self
      */
-    public HES_CatmullClark setKeepBoundary(final boolean b) {
+    public HES_CatmullClark2 setKeepBoundary(final boolean b) {
         keepBoundary = b;
         return this;
         
@@ -85,7 +85,7 @@ public class HES_CatmullClark extends HES_Subdividor {
      *            the f
      * @return the hE s_ catmull clark
      */
-    public HES_CatmullClark setBlendFactor(final double f) {
+    public HES_CatmullClark2 setBlendFactor(final double f) {
         blendFactor = new WB_ConstantParameter<Double>(f);
         return this;
     }
@@ -97,7 +97,7 @@ public class HES_CatmullClark extends HES_Subdividor {
      *            the f
      * @return the hE s_ catmull clark
      */
-    public HES_CatmullClark setBlendFactor(final WB_Parameter<Double> f) {
+    public HES_CatmullClark2 setBlendFactor(final WB_Parameter<Double> f) {
         blendFactor = f;
         return this;
     }
@@ -120,9 +120,11 @@ public class HES_CatmullClark extends HES_Subdividor {
             he = v.getHalfedge();
             final WB_Point3d afc = new WB_Point3d();
             int c = 0;
+            // afc.add(v.getVertexNormal().scale(3.0));
             do {
                 if (he.getFace() != null) {
                     afc.add(he.getFace().getFaceCenter());
+                    afc.add(he.getFace().getFaceNormal().mult(-1.8));
                     c++;
                 }
                 he = he.getNextInVertex();
@@ -140,19 +142,23 @@ public class HES_CatmullClark extends HES_Subdividor {
         HE_Vertex n;
         List<HE_Vertex> neighbors;
         vItr = inner.iterator();
+        
         while (vItr.hasNext()) {
             v = vItr.next();
             if (v.getLabel() == -1) {
-                p = avgFC.get(v.key());
+                double w1 = 1.0;
+                p = avgFC.get(v.key()).mult(w1);
                 neighbors = v.getNeighborVertices();
                 final int order = neighbors.size();
                 final double io = 1.0 / order;
+                double w2 = 2.0;
+                double w3 = (order - 3) * 1;
                 for (int i = 0; i < order; i++) {
                     n = neighbors.get(i);
-                    p.add(2.0 * io * n.x, 2.0 * io * n.y, 2.0 * io * n.z);
+                    p.add(w2 * io * n.x, w2 * io * n.y, w2 * io * n.z);
                 }
-                p.add(v.multAndCopy(order - 3));
-                p.div(order);
+                p.add(v.multAndCopy(w3));
+                p.div(w1 + w2 + w3);
                 newPositions.put(
                         v.key(),
                         WB_Point3d.interpolate(v, p,
@@ -279,20 +285,26 @@ public class HES_CatmullClark extends HES_Subdividor {
         while (vItr.hasNext()) {
             v = vItr.next();
             if (v.getLabel() == -1) {
-                p = avgFC.get(v.key());
+                double w1 = .0;
+                double w2 = .0;
+                p = avgFC.get(v.key()).mult(w1);
                 neighbors = v.getNeighborVertices();
                 final int order = neighbors.size();
                 final double io = 1.0 / order;
+                
+                double w3 = (order - 3) * 0.0;
                 for (int i = 0; i < order; i++) {
                     n = neighbors.get(i);
-                    p.add(2.0 * io * n.x, 2.0 * io * n.y, 2.0 * io * n.z);
+                    p.add(w2 * io * n.x, w2 * io * n.y, w2 * io * n.z);
                 }
-                p.add(v.multAndCopy(order - 3));
-                p.div(order);
-                newPositions.put(
-                        v.key(),
-                        WB_Point3d.interpolate(v, p,
-                                blendFactor.value(v.x, v.y, v.z)));
+                p.add(v.multAndCopy(w3));
+                p.div(w1 + w2 + w3);
+                /*
+                 * newPositions.put(
+                 * v.key(),
+                 * WB_Point3d.interpolate(v, p,
+                 * blendFactor.value(v.x, v.y, v.z)));
+                 */
             }
             else {
                 p = new WB_Point3d();
