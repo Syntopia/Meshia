@@ -89,9 +89,11 @@ public class Engine implements GLEventListener {
             sphere = new CubeProjectedSphere();
             // box = new Box3D();
             hemesh = new Hemesh3D();
-            int res = 100;
+            int res = 400;
+            Logger.startTime();
             SimpleMarchingCubes simpleMarchingCubes = new SimpleMarchingCubes(0, new Vector3(-1, -1, -1), new Vector3(1, 1, 1), res,
                     res, res);
+            Logger.endTime("Marching Cubes");
             isoSurface = simpleMarchingCubes.getObject3D();
             sphere.init(gl, shaderState);
             isoSurface.init(gl, shaderState);

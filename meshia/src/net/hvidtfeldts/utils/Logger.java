@@ -3,12 +3,15 @@ package net.hvidtfeldts.utils;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 import javax.swing.SwingUtilities;
 
 public class Logger {
     private static Logger log = new Logger();
     private static OutputStream stream = new LoggerPrintStream();
+    private final Deque<Long> timeStack = new ArrayDeque<Long>();
     
     protected void internalLog(Object obj) {
         System.out.println(obj);
@@ -66,5 +69,22 @@ public class Logger {
             
             sb.append((char) b);
         }
+    }
+    
+    public static void startTime() {
+        log.internalStartTime();
+    }
+    
+    private void internalStartTime() {
+        timeStack.push(System.currentTimeMillis());
+    }
+    
+    public static void endTime(String message) {
+        log.internalEndTime(message);
+    }
+    
+    private void internalEndTime(String message) {
+        Long millis = System.currentTimeMillis() - timeStack.pop();
+        log.internalLog(String.format("[%s ms] %s", millis, message));
     }
 }

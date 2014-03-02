@@ -1,5 +1,8 @@
 package net.hvidtfeldts.meshia.engine3d;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import net.hvidtfeldts.meshia.math.Vector3;
 
 /**
@@ -13,6 +16,10 @@ public abstract class MarchingCubes {
     protected final int nx;
     protected final int ny;
     protected final int nz;
+    protected int currentX;
+    
+    // Holds current and previous x slice
+    double[][] xBuffers = new double[2][];
     
     protected MarchingCubes(double isolevel, int nx, int ny, int nz) {
         this.isolevel = isolevel;
@@ -22,7 +29,22 @@ public abstract class MarchingCubes {
     }
     
     void polygonise() {
+        xBuffers[0] = new double[nz * ny];
+        xBuffers[1] = new double[nz * ny];
+        
         for (int x = 0; x < nx - 1; x++) {
+            // Logger.log("Calculating x-slice: " + x);
+            if (x == 0) {
+                cacheXSlice(0, x);
+            }
+            else {
+                double[] t = xBuffers[0];
+                xBuffers[0] = xBuffers[1];
+                xBuffers[1] = t;
+            }
+            currentX = x;
+            cacheXSlice(1, x);
+            
             for (int y = 0; y < ny - 1; y++) {
                 for (int z = 0; z < nz - 1; z++) {
                     polygonise(x, y, z);
@@ -30,6 +52,43 @@ public abstract class MarchingCubes {
             }
         }
     }
+    
+    protected double getValue(int i, int j, int k) {
+        return xBuffers[i - currentX][k + j * nz];
+    }
+    
+    private void cacheXSlice(final int buffer, final int i) {
+        final int threadCount = Runtime.getRuntime().availableProcessors();
+        List<Thread> threads = new ArrayList<Thread>();
+        
+        for (int ti = 0; ti < threadCount; ti++) {
+            final int ix = ti;
+            Thread t = new Thread() {
+                @Override
+                public void run() {
+                    for (int y = ix; y < ny; y += threadCount) {
+                        for (int z = 0; z < nz; z++) {
+                            xBuffers[buffer][z + y * nz] = getValue(getPosition(i + buffer, y, z));
+                        }
+                    }
+                }
+            };
+            threads.add(t);
+            t.start();
+        }
+        
+        for (Thread t : threads) {
+            try {
+                t.join();
+            }
+            catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    protected abstract double getValue(Vector3 position);
     
     void polygonise(int i, int j, int k) {
         double[] v = new double[8];
@@ -139,11 +198,6 @@ public abstract class MarchingCubes {
      * Returns the spatial coordinates for the given index.
      */
     protected abstract Vector3 getPosition(int i, int j, int k);
-    
-    /**
-     * Returns the scalar value we will find iso-surfaces for.
-     */
-    protected abstract double getValue(int i, int j, int k);
     
     private Vector3 vertexInterpolate(double isolevel, Vector3 p1, Vector3 p2, double v1, double v2) {
         float mu = (float) ((isolevel - v1) / (v2 - v1));

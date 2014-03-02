@@ -7,7 +7,7 @@ gix {
 }
 
 
-gi {
+gix {
  type igi
   samples 64
   sets 1

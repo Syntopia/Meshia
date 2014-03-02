@@ -1,5 +1,11 @@
 package net.hvidtfeldts.meshia.engine3d;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,14 +21,17 @@ import org.sunflow.core.ParameterList;
 import org.sunflow.core.ParameterList.InterpolationType;
 import org.sunflow.core.primitive.TriangleMesh;
 
+import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
 public class PolygonBuilder implements Object3D, SunflowRenderable {
     private final List<Vector3> positions = new ArrayList<Vector3>();
     private final List<Vector3> normals = new ArrayList<Vector3>();
+    private final List<Double> weights = new ArrayList<Double>();
     private final List<Vector3> colors = new ArrayList<Vector3>();
     private final List<Integer> triangles = new ArrayList<Integer>();
+    private final int[] indexBuffer = new int[] { -1 };
     
     private GLArrayDataServer verticesVBO;
     private GLArrayDataServer normalsVBO;
@@ -50,6 +59,7 @@ public class PolygonBuilder implements Object3D, SunflowRenderable {
     int addColorVertex(Vector3 pos, Vector3 normal, Vector3 color) {
         positions.add(pos);
         normals.add(normal);
+        weights.add(0d);
         colors.add(color);
         return positions.size() - 1;
     }
@@ -83,9 +93,12 @@ public class PolygonBuilder implements Object3D, SunflowRenderable {
         
         elementCount = triangles.size();
         
-        for (int j = 0; j < elementCount; j++) {
-            int in = triangles.get(j);
-            
+        for (int j = 0; j < normals.size(); j++) {
+            normals.get(j).normalize();
+        }
+        
+        for (int j = 0; j < positions.size(); j++) {
+            int in = j;
             verticesVBO.putf(positions.get(in).getX());
             verticesVBO.putf(positions.get(in).getY());
             verticesVBO.putf(positions.get(in).getZ());
@@ -117,7 +130,41 @@ public class PolygonBuilder implements Object3D, SunflowRenderable {
          * normals = null;
          * triangles = null;
          */
-        Logger.log(String.format("Created %s polygons", elementCount));
+        gl.glGenBuffers(1, indexBuffer, 0);
+        
+        int[] indexArray = new int[triangles.size()];
+        for (int i = 0; i < triangles.size(); i++) {
+            indexArray[i] = triangles.get(i);
+        }
+        
+        IntBuffer intBuffer = Buffers.newDirectIntBuffer(indexArray.length);
+        intBuffer.put(indexArray);
+        intBuffer.rewind();
+        
+        gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, indexBuffer[0]);
+        gl.glBufferData(GL.GL_ELEMENT_ARRAY_BUFFER,
+                indexArray.length * 4, intBuffer, GL.GL_STATIC_DRAW);
+        
+        Logger.log("Points: " + positions.size() + " normals: " + normals.size() + " indices: " + indexArray.length);
+        
+        Logger.log(String.format("Created %s triangles, %s edges", elementCount / 3, elementCount));
+        
+        try {
+            File file = new File("e:\\out.obj");
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+            
+            FileWriter fw = new FileWriter(file);
+            
+            BufferedWriter bw = new BufferedWriter(fw);
+            toOBJ(bw);
+            bw.close();
+        }
+        catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
     
     @Override
@@ -125,10 +172,38 @@ public class PolygonBuilder implements Object3D, SunflowRenderable {
         verticesVBO.enableBuffer(gl, true);
         colorsVBO.enableBuffer(gl, true);
         normalsVBO.enableBuffer(gl, true);
-        gl.glDrawArrays(GL.GL_TRIANGLES, 0, elementCount);
+        
+        gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, indexBuffer[0]);
+        gl.glDrawElements(
+                GL.GL_TRIANGLES, // mode
+                elementCount, // count
+                GL.GL_UNSIGNED_INT, // type
+                0 // element array buffer offset
+        );
+        
         verticesVBO.enableBuffer(gl, false);
         colorsVBO.enableBuffer(gl, false);
         normalsVBO.enableBuffer(gl, false);
+    }
+    
+    public void toOBJ(Writer sb) throws IOException {
+        sb.append(String.format("// Vertices %n"));
+        for (Vector3 v : positions) {
+            sb.append(String.format("v %s %s %s%n", v.getX(), v.getY(), v.getZ()));
+        }
+        
+        sb.append(String.format("%n// Normals %n"));
+        for (Vector3 v : normals) {
+            sb.append(String.format("vn %s %s %s%n", v.getX(), v.getY(), v.getZ()));
+        }
+        
+        sb.append(String.format("%n// Faces %n"));
+        for (int i = 0; i < triangles.size(); i += 3) {
+            int i1 = triangles.get(i) + 1;
+            int i2 = triangles.get(i + 1) + 1;
+            int i3 = triangles.get(i + 2) + 1;
+            sb.append(String.format("f %s//%s %s//%s %s//%s%n", i1, i1, i2, i2, i3, i3));
+        }
     }
     
     @Override
@@ -153,11 +228,22 @@ public class PolygonBuilder implements Object3D, SunflowRenderable {
         for (int i = 0; i < triangles.size(); i++) {
             indices[i] = triangles.get(i);
         }
-        
+        Logger.log("Points: " + positions.size() + " normals: " + normals.size() + " indices: " + indices.length);
         pl.addPoints("points", InterpolationType.VERTEX, points);
         pl.addIntegerArray("triangles", indices);
         pl.addVectors("normals", InterpolationType.VERTEX, ns);
         tm.update(pl, api);
         return tm;
+    }
+    
+    public void setNormal(int i1, Vector3 normal) {
+        Vector3 old = normals.get(i1);
+        if (old != null) {
+            // normals.set(i1, Vector3.add(normal, old));
+        }
+        else {
+            normals.set(i1, normal);
+        }
+        
     }
 }
