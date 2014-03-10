@@ -1,26 +1,30 @@
 package net.hvidtfeldts.meshia.engine3d;
 
+import java.awt.Component;
 import java.util.HashMap;
 import java.util.Map;
 
 import net.hvidtfeldts.meshia.math.Vector3;
 
+import com.jogamp.opengl.util.glsl.ShaderState;
+
 public class SimpleMarchingCubes extends MarchingCubes {
     private final Vector3 from;
     private final Vector3 to;
-    private final PolygonBuilder builder = new PolygonBuilder();
+    private PolygonBuilder builder;
     private int count;
     private final float delta;
     
-    public SimpleMarchingCubes(double isolevel, Vector3 from, Vector3 to, int cellsX, int cellsY, int cellsZ) {
-        super(isolevel, cellsX + 1, cellsY + 1, cellsZ + 1);
+    public SimpleMarchingCubes(double isolevel, Vector3 from, Vector3 to, int cellsX, int cellsY, int cellsZ, Component parentComponent) {
+        super(isolevel, cellsX + 1, cellsY + 1, cellsZ + 1, parentComponent);
         this.from = from;
         this.to = to;
         delta = (to.getX() - from.getX()) / (cellsX * 120.0f);
-        polygonise();
     }
     
-    public SunflowRenderable getObject3D() {
+    public SunflowRenderable getObject3D(ShaderState shaderState) {
+        builder = new PolygonBuilder(shaderState, String.format("MC %S,%S,%S", nx, ny, nz));
+        polygonise();
         return builder;
     }
     
@@ -42,8 +46,6 @@ public class SimpleMarchingCubes extends MarchingCubes {
     @Override
     protected void createPolygon(Vector3 p1, Vector3 p2, Vector3 p3) {
         boolean faceNormals = true;
-        
-        float t = 0.02f;
         
         boolean reuse = true;
         if (faceNormals) {
@@ -116,6 +118,11 @@ public class SimpleMarchingCubes extends MarchingCubes {
     
     @Override
     protected double getValue(Vector3 p) {
+        return p.getLength() - 0.5;
+    }
+    
+    protected double getValue2e(Vector3 p) {
+        
         double power = 6;
         p.multiply(1.15f);
         double x = p.getX();
@@ -144,8 +151,18 @@ public class SimpleMarchingCubes extends MarchingCubes {
             z += p.getZ();
             // Logger.log("J p" + j + " " + p);
         }
-        return (0.5 * Math.log(r) * r / dr) - 0.0015;
+        double d = (0.5 * Math.log(r) * r / dr) - 0.0019;
+        double co = 0.1;
+        if (p.getZ() < 0) {
+            co = 0.2;
+        }
+        double rr = -0.2 + co * Math.abs(p.getZ());
+        if (Math.abs(p.getZ()) < 0.5) {
+            rr += -0.7 * (0.5 - Math.abs(p.getZ()));
+        }
+        double d2 = -Math.sqrt(p.getX() * p.getX() + p.getY() * p.getY()) - rr;
         
+        return Math.max(d2, d);
     }
     
     protected double getValue2(Vector3 p) {

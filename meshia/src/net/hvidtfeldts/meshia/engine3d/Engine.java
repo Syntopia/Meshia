@@ -18,8 +18,11 @@ import javax.media.opengl.GLUniformData;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 
-import net.hvidtfeldts.meshia.math.Vector3;
+import net.hvidtfeldts.meshia.gui.Project;
+import net.hvidtfeldts.meshia.gui.Project.ProjectEvent;
+import net.hvidtfeldts.utils.EventSource.EventListener;
 import net.hvidtfeldts.utils.Logger;
 
 import com.jogamp.opengl.JoglVersion;
@@ -30,8 +33,9 @@ import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
-public class Engine implements GLEventListener {
+public class Engine implements GLEventListener, EventListener<ProjectEvent> {
     private final Camera camera = new Camera();
+    private final Project project;
     
     private ShaderState shaderState;
     private PMVMatrix matrixStack;
@@ -41,11 +45,10 @@ public class Engine implements GLEventListener {
     private ShaderState raytracerShaderState;
     private GLUniformData raytracerPmvMatrixUniform;
     
-    private Object3D sphere;
-    private SunflowRenderable isoSurface;
     private Hemesh3D hemesh;
     private Object3D crossSection;
     private RaytracerObject raytracerObject;
+    private JPanel panel;
     
     private final FloatBuffer farNear = FloatBuffer.allocate(2);
     
@@ -60,7 +63,9 @@ public class Engine implements GLEventListener {
     
     private boolean inError;
     
-    public Engine() {
+    public Engine(Project project) {
+        this.project = project;
+        project.addEventListener(this);
     }
     
     @Override
@@ -86,18 +91,13 @@ public class Engine implements GLEventListener {
             
             initializeShaders(gl);
             
-            sphere = new CubeProjectedSphere();
             // box = new Box3D();
-            hemesh = new Hemesh3D();
-            int res = 400;
-            Logger.startTime();
-            SimpleMarchingCubes simpleMarchingCubes = new SimpleMarchingCubes(0, new Vector3(-1, -1, -1), new Vector3(1, 1, 1), res,
-                    res, res);
-            Logger.endTime("Marching Cubes");
-            isoSurface = simpleMarchingCubes.getObject3D();
-            sphere.init(gl, shaderState);
-            isoSurface.init(gl, shaderState);
-            hemesh.init(gl, shaderState);
+            hemesh = new Hemesh3D(shaderState, "Hemesh");
+            hemesh.init(gl);
+            
+            for (Object3D o : project.getObjects()) {
+                o.init(gl);
+            }
             
             raytracerObject = new RaytracerObject();
             raytracerObject.init(gl, raytracerShaderState);
@@ -218,9 +218,11 @@ public class Engine implements GLEventListener {
         matrixStack.update();
         shaderState.uniform(gl, pmvMatrixUniform);
         
-        // sphere.draw(gl);
-        isoSurface.draw(gl);
-        // hemesh.draw(gl);
+        for (Object3D o : project.getObjects()) {
+            if (o.isVisible()) {
+                o.draw(gl);
+            }
+        }
         shaderState.useProgram(gl, false);
         
         raytracerShaderState.useProgram(gl, true);
@@ -286,7 +288,6 @@ public class Engine implements GLEventListener {
             farNear.put(1, zNear);
             
             matrixStack.gluPerspective(fovY, aspect, zNear, zFar);
-            System.out.println(matrixStack.toString());
             shaderState.uniform(gl, pmvMatrixUniform);
             shaderState.useProgram(gl, false);
             
@@ -368,8 +369,8 @@ public class Engine implements GLEventListener {
         ShaderState shaderState = new ShaderState();
         shaderState.setVerbose(true);
         initializeFlatShaders(gl, shaderState);
-        crossSection = new CrossSection2D();
-        crossSection.init(gl, shaderState);
+        crossSection = new CrossSection2D(shaderState, "Cross-section");
+        crossSection.init(gl);
         
         shaderState.useProgram(gl, true);
         crossSection.draw(gl);
@@ -413,6 +414,24 @@ public class Engine implements GLEventListener {
     }
     
     public SunflowRenderable getMesh() {
-        return isoSurface;
+        for (Object3D o : project.getObjects()) {
+            if (o instanceof SunflowRenderable && o.isVisible()) {
+                return (SunflowRenderable) o;
+            }
+        }
+        return null;
+    }
+    
+    public ShaderState getShaderState() {
+        return shaderState;
+    }
+    
+    @Override
+    public void eventReceived(ProjectEvent event) {
+        panel.repaint();
+    }
+    
+    public void setPanel(JPanel panel) {
+        this.panel = panel;
     }
 }

@@ -2,10 +2,15 @@ package net.hvidtfeldts.meshia.engine3d;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.io.Writer;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.IntBuffer;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +30,7 @@ import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
-public class PolygonBuilder implements Object3D, SunflowRenderable {
+public class PolygonBuilder extends AbstractObject3D implements SunflowRenderable {
     private final List<Vector3> positions = new ArrayList<Vector3>();
     private final List<Vector3> normals = new ArrayList<Vector3>();
     private final List<Double> weights = new ArrayList<Double>();
@@ -40,6 +45,10 @@ public class PolygonBuilder implements Object3D, SunflowRenderable {
     private int elementCount;
     
     private Transformator transformator = new IdentityTransformator();
+    
+    protected PolygonBuilder(ShaderState shaderState, String name) {
+        super(shaderState, name);
+    }
     
     void setTransformator(Transformator transformator) {
         this.transformator = transformator;
@@ -86,7 +95,7 @@ public class PolygonBuilder implements Object3D, SunflowRenderable {
     }
     
     @Override
-    public void init(GL2ES2 gl, ShaderState st) {
+    public void internalInit(GL2ES2 gl) {
         verticesVBO = GLArrayDataServer.createGLSL("vertex", 3, GL.GL_FLOAT, false, triangles.size(), GL.GL_STATIC_DRAW);
         colorsVBO = GLArrayDataServer.createGLSL("color", 4, GL.GL_FLOAT, false, triangles.size(), GL.GL_STATIC_DRAW);
         normalsVBO = GLArrayDataServer.createGLSL("normal", 3, GL.GL_FLOAT, false, triangles.size(), GL.GL_STATIC_DRAW);
@@ -114,15 +123,15 @@ public class PolygonBuilder implements Object3D, SunflowRenderable {
         }
         
         verticesVBO.seal(gl, true);
-        st.ownAttribute(verticesVBO, true);
+        shaderState.ownAttribute(verticesVBO, true);
         verticesVBO.enableBuffer(gl, false);
         
         colorsVBO.seal(gl, true);
-        st.ownAttribute(colorsVBO, true);
+        shaderState.ownAttribute(colorsVBO, true);
         colorsVBO.enableBuffer(gl, false);
         
         normalsVBO.seal(gl, true);
-        st.ownAttribute(normalsVBO, true);
+        shaderState.ownAttribute(normalsVBO, true);
         normalsVBO.enableBuffer(gl, false);
         /*
          * positions = null;
@@ -158,7 +167,8 @@ public class PolygonBuilder implements Object3D, SunflowRenderable {
             FileWriter fw = new FileWriter(file);
             
             BufferedWriter bw = new BufferedWriter(fw);
-            toOBJ(bw);
+            // toOBJ(bw);
+            // toSTL("e:\\out.stl");
             bw.close();
         }
         catch (IOException e) {
@@ -168,7 +178,7 @@ public class PolygonBuilder implements Object3D, SunflowRenderable {
     }
     
     @Override
-    public void draw(GL2ES2 gl) {
+    public void internalDraw(GL2ES2 gl) {
         verticesVBO.enableBuffer(gl, true);
         colorsVBO.enableBuffer(gl, true);
         normalsVBO.enableBuffer(gl, true);
@@ -184,6 +194,52 @@ public class PolygonBuilder implements Object3D, SunflowRenderable {
         verticesVBO.enableBuffer(gl, false);
         colorsVBO.enableBuffer(gl, false);
         normalsVBO.enableBuffer(gl, false);
+    }
+    
+    public void toSTL(String filename) throws FileNotFoundException, IOException {
+        /*
+         * UINT8[80] – Header
+         * UINT32 – Number of triangles
+         * 
+         * foreach triangle
+         * REAL32[3] – Normal vector
+         * REAL32[3] – Vertex 1
+         * REAL32[3] – Vertex 2
+         * REAL32[3] – Vertex 3
+         * UINT16 – Attribute byte count
+         * end
+         */
+        try (@SuppressWarnings("resource")
+        FileChannel ch = new RandomAccessFile(filename, "rw").getChannel())
+        {
+            Logger.startTime();
+            ByteBuffer bb = ByteBuffer.allocate(1000).order(ByteOrder.LITTLE_ENDIAN);
+            for (int i = 0; i < 80; i++) {
+                bb.put((byte) 32); // Header with spaces
+            }
+            bb.putInt(triangles.size() / 3); // Triangle count
+            for (int i = 0; i < triangles.size(); i += 3) {
+                int i1 = triangles.get(i);
+                int i2 = triangles.get(i + 1);
+                int i3 = triangles.get(i + 2);
+                // Per-face Normal
+                Vector3 n = normals.get(i1);
+                n.normalize();
+                bb.putFloat(n.getX()).putFloat(n.getY()).putFloat(n.getZ());
+                
+                // Vertices
+                bb.putFloat(positions.get(i1).getX()).putFloat(positions.get(i1).getY()).putFloat(positions.get(i1).getZ());
+                bb.putFloat(positions.get(i2).getX()).putFloat(positions.get(i2).getY()).putFloat(positions.get(i2).getZ());
+                bb.putFloat(positions.get(i3).getX()).putFloat(positions.get(i3).getY()).putFloat(positions.get(i3).getZ());
+                // Two zeroes
+                bb.putShort((short) 0);
+                // Write
+                bb.flip();
+                ch.write(bb);
+                bb.clear();
+            }
+            Logger.endTime("Wrote STL");
+        }
     }
     
     public void toOBJ(Writer sb) throws IOException {

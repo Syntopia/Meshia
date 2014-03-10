@@ -6,11 +6,16 @@ import javax.media.opengl.GL2ES2;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
-public class CrossSection2D implements Object3D {
+public class CrossSection2D extends AbstractObject3D {
+    
     private GLArrayDataServer vertices;
     
+    protected CrossSection2D(ShaderState shaderState, String name) {
+        super(shaderState, name);
+    }
+    
     @Override
-    public void init(final GL2ES2 gl, ShaderState st) {
+    public void internalInit(final GL2ES2 gl) {
         float[] ver = new float[] {
                 -1, -1, 0, /* */1, -1, 0, /* */1, 1, 0,
                 1, 1, 0, /* */-1, 1, 0, /* */-1, -1, 0,
@@ -22,12 +27,12 @@ public class CrossSection2D implements Object3D {
             vertices.putf(ver[i]);
         }
         vertices.seal(gl, true);
-        st.ownAttribute(vertices, true);
+        shaderState.ownAttribute(vertices, true);
         vertices.enableBuffer(gl, false);
     }
     
     @Override
-    public void draw(GL2ES2 gl) {
+    public void internalDraw(GL2ES2 gl) {
         vertices.enableBuffer(gl, true);
         gl.glDrawArrays(GL.GL_TRIANGLES, 0, vertices.getElementCount());
         vertices.enableBuffer(gl, false);

@@ -1,9 +1,13 @@
 package net.hvidtfeldts.meshia.engine3d;
 
+import java.awt.Component;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.ProgressMonitor;
+
 import net.hvidtfeldts.meshia.math.Vector3;
+import net.hvidtfeldts.utils.Logger;
 
 /**
  * Base class for Marching Cube implementations.
@@ -17,40 +21,56 @@ public abstract class MarchingCubes {
     protected final int ny;
     protected final int nz;
     protected int currentX;
+    private final Component parentComponent;
     
     // Holds current and previous x slice
-    double[][] xBuffers = new double[2][];
+    private final double[][] xBuffers = new double[2][];
     
-    protected MarchingCubes(double isolevel, int nx, int ny, int nz) {
+    protected MarchingCubes(double isolevel, int nx, int ny, int nz, Component parentComponent) {
         this.isolevel = isolevel;
         this.nx = nx;
         this.ny = ny;
         this.nz = nz;
+        this.parentComponent = parentComponent;
     }
     
     void polygonise() {
         xBuffers[0] = new double[nz * ny];
         xBuffers[1] = new double[nz * ny];
         
-        for (int x = 0; x < nx - 1; x++) {
-            // Logger.log("Calculating x-slice: " + x);
-            if (x == 0) {
-                cacheXSlice(0, x);
-            }
-            else {
-                double[] t = xBuffers[0];
-                xBuffers[0] = xBuffers[1];
-                xBuffers[1] = t;
-            }
-            currentX = x;
-            cacheXSlice(1, x);
+        final ProgressMonitor pm = new ProgressMonitor(parentComponent, "Marching...", "Polygonizing", 0, nx - 1);
+        
+        Runnable r = new Runnable() {
             
-            for (int y = 0; y < ny - 1; y++) {
-                for (int z = 0; z < nz - 1; z++) {
-                    polygonise(x, y, z);
+            @Override
+            public void run() {
+                // TODO Auto-generated method stub
+                for (int x = 0; x < nx - 1; x++) {
+                    pm.setProgress(x);
+                    Logger.log("Calculating x-slice: " + x + " of " + (nx - 1));
+                    if (x == 0) {
+                        cacheXSlice(0, x);
+                    }
+                    else {
+                        double[] t = xBuffers[0];
+                        xBuffers[0] = xBuffers[1];
+                        xBuffers[1] = t;
+                    }
+                    currentX = x;
+                    cacheXSlice(1, x);
+                    
+                    for (int y = 0; y < ny - 1; y++) {
+                        for (int z = 0; z < nz - 1; z++) {
+                            polygonise(x, y, z);
+                        }
+                    }
                 }
+                pm.setProgress(nx - 1);
+                
             }
-        }
+            
+        };
+        r.run();
     }
     
     protected double getValue(int i, int j, int k) {

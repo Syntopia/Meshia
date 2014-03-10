@@ -9,13 +9,18 @@ import com.jogamp.opengl.util.glsl.ShaderState;
 /**
  * Simple box
  */
-public class Box3D implements Object3D {
+public class Box3D extends AbstractObject3D {
+    
     private GLArrayDataServer vertices;
     private GLArrayDataServer normals;
     private GLArrayDataServer colors;
     
+    protected Box3D(ShaderState shaderState, String name) {
+        super(shaderState, name);
+    }
+    
     @Override
-    public void init(final GL2ES2 gl, ShaderState st) {
+    public void internalInit(final GL2ES2 gl) {
         float[] ver = new float[] {
                 0, 0, 0, /* */1, 0, 0, /* */0, 1, 0,
                 1, 0, 0, /* */1, 1, 0, /* */0, 1, 0,
@@ -85,18 +90,17 @@ public class Box3D implements Object3D {
                 vertices.putf(ver[i] * 0.5f - 0.25f);
         }
         vertices.seal(gl, true);
-        st.ownAttribute(vertices, true);
+        shaderState.ownAttribute(vertices, true);
         vertices.enableBuffer(gl, false);
         
         // Allocate Color Array
         colors = GLArrayDataServer.createGLSL("color", 4, GL.GL_FLOAT, false, col.length / 4, GL.GL_STATIC_DRAW);
         
         for (int i = 0; i < col.length; i++) {
-            // colors.putf(col[i]);
             colors.putf(1.0f);
         }
         colors.seal(gl, true);
-        st.ownAttribute(colors, true);
+        shaderState.ownAttribute(colors, true);
         colors.enableBuffer(gl, false);
         
         // Allocate Normal Array
@@ -111,12 +115,12 @@ public class Box3D implements Object3D {
         }
         
         normals.seal(gl, true);
-        st.ownAttribute(normals, true);
+        shaderState.ownAttribute(normals, true);
         normals.enableBuffer(gl, false);
     }
     
     @Override
-    public void draw(GL2ES2 gl) {
+    public void internalDraw(GL2ES2 gl) {
         vertices.enableBuffer(gl, true);
         colors.enableBuffer(gl, true);
         normals.enableBuffer(gl, true);

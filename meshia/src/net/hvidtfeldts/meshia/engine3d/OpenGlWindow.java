@@ -10,7 +10,7 @@ import java.awt.event.MouseMotionListener;
 
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
-import javax.media.opengl.awt.GLCanvas;
+import javax.media.opengl.awt.GLJPanel;
 import javax.swing.SwingUtilities;
 
 import net.hvidtfeldts.meshia.sunflow.SunflowRenderer;
@@ -22,7 +22,7 @@ import org.sunflow.math.Vector3;
 
 import com.jogamp.opengl.util.Animator;
 
-public final class OpenGlWindow extends GLCanvas implements MouseListener, MouseMotionListener, KeyListener {
+public final class OpenGlWindow extends GLJPanel implements MouseListener, MouseMotionListener, KeyListener {
     public static final boolean MEASURE_FPS = false;
     
     private static final long serialVersionUID = 1L;
@@ -32,10 +32,9 @@ public final class OpenGlWindow extends GLCanvas implements MouseListener, Mouse
     private int x;
     private int y;
     
-    private OpenGlWindow(final GLCapabilities caps) {
+    private OpenGlWindow(final GLCapabilities caps, Engine engine) {
         super(caps);
-        
-        engine = new Engine();
+        this.engine = engine;
         addGLEventListener(engine);
         this.setBackground(Color.BLACK);
         
@@ -49,19 +48,21 @@ public final class OpenGlWindow extends GLCanvas implements MouseListener, Mouse
         addMouseListener(this);
         addMouseMotionListener(this);
         addKeyListener(this);
+        
     }
     
-    public static OpenGlWindow createOpenGlWindow() {
+    public static OpenGlWindow createOpenGlWindow(Engine engine) {
         GLProfile glp = GLProfile.get(GLProfile.GL2ES2);
         final GLCapabilities caps = new GLCapabilities(glp);
         caps.setSampleBuffers(true);
         caps.setNumSamples(2);
-        OpenGlWindow oglw = new OpenGlWindow(caps);
+        OpenGlWindow oglw = new OpenGlWindow(caps, engine);
         oglw.setMinimumSize(new Dimension(50, 50));
         
         return oglw;
     }
     
+    @Override
     public void dispose() {
         if (animator != null) {
             animator.stop();
@@ -70,6 +71,7 @@ public final class OpenGlWindow extends GLCanvas implements MouseListener, Mouse
     
     @Override
     public void mouseClicked(MouseEvent e) {
+        requestFocus();
     }
     
     @Override

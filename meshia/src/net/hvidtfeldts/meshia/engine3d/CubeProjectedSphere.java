@@ -2,11 +2,14 @@ package net.hvidtfeldts.meshia.engine3d;
 
 import net.hvidtfeldts.meshia.math.Vector3;
 
+import com.jogamp.opengl.util.glsl.ShaderState;
+
 public class CubeProjectedSphere extends PolygonBuilder {
     
     private static final Vector3 ZERO = new Vector3(0, 0, 0);
     
-    public CubeProjectedSphere() {
+    public CubeProjectedSphere(ShaderState shaderState) {
+        super(shaderState, "Cube Projected Sphere");
         final Vector3 offset = new Vector3(0, 0, -5);
         int n = 15;
         float dx = 1.0f / n;

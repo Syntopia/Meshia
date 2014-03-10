@@ -1,7 +1,6 @@
 package net.hvidtfeldts.meshia.engine3d;
 
 import java.nio.IntBuffer;
-import java.util.List;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
@@ -14,17 +13,18 @@ import org.sunflow.core.ParameterList.InterpolationType;
 import org.sunflow.core.primitive.TriangleMesh;
 
 import wblut.geom.WB_Normal3d;
-import wblut.geom.WB_Point3d;
 import wblut.hemesh.HEC_Icosahedron;
-import wblut.hemesh.HE_Face;
 import wblut.hemesh.HE_Mesh;
-import wblut.hemesh.HE_Selection;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
-public class Hemesh3D implements Object3D, SunflowRenderable {
+public class Hemesh3D extends AbstractObject3D implements SunflowRenderable {
+    protected Hemesh3D(ShaderState shaderState, String name) {
+        super(shaderState, name);
+    }
+    
     private GLArrayDataServer vertices;
     private GLArrayDataServer normals;
     private GLArrayDataServer colors;
@@ -38,7 +38,7 @@ public class Hemesh3D implements Object3D, SunflowRenderable {
     int[] indexArray;
     
     @Override
-    public void init(final GL2ES2 gl, ShaderState st) {
+    public void internalInit(final GL2ES2 gl) {
         
         HE_Mesh mesh;
         
@@ -46,18 +46,18 @@ public class Hemesh3D implements Object3D, SunflowRenderable {
             
             mesh = (new HEC_Icosahedron()).create();
             // mesh = (new HEC_Cube(0.1, 2, 2, 2)).create();
-            double a = 1;
-            double factor = 1.5;
-            for (int i = 0; i < 0; i++) {
-                List<HE_Face> facesAsList = mesh.getFacesAsList();
-                for (HE_Face hf : facesAsList) {
-                    WB_Point3d faceCenter = hf.getFaceCenter();
-                    WB_Normal3d faceNormal = hf.getFaceNormal();
-                    HE_Selection triSplitFace = mesh.triSplitFace(hf, a);
-                }
-                
-                a /= -factor;
-            }
+            // double a = 1;
+            // double factor = 1.5;
+            // for (int i = 0; i < 0; i++) {
+            // List<HE_Face> facesAsList = mesh.getFacesAsList();
+            // for (HE_Face hf : facesAsList) {
+            // WB_Point3d faceCenter = hf.getFaceCenter();
+            // WB_Normal3d faceNormal = hf.getFaceNormal();
+            // HE_Selection triSplitFace = mesh.triSplitFace(hf, a);
+            // }
+            
+            // a /= -factor;
+            // }
             mesh.clean();
             
             // mesh = (new HEC_Johnson(24, 0.5)).create();
@@ -143,7 +143,7 @@ public class Hemesh3D implements Object3D, SunflowRenderable {
             vertices.putf(vertexArray[i]);
         }
         vertices.seal(gl, true);
-        st.ownAttribute(vertices, true);
+        shaderState.ownAttribute(vertices, true);
         vertices.enableBuffer(gl, false);
         
         // Allocate Color Array
@@ -152,7 +152,7 @@ public class Hemesh3D implements Object3D, SunflowRenderable {
             colors.putf(colorArray[i]);
         }
         colors.seal(gl, true);
-        st.ownAttribute(colors, true);
+        shaderState.ownAttribute(colors, true);
         colors.enableBuffer(gl, false);
         
         // Allocate Normal Array
@@ -163,12 +163,12 @@ public class Hemesh3D implements Object3D, SunflowRenderable {
         }
         
         normals.seal(gl, true);
-        st.ownAttribute(normals, true);
+        shaderState.ownAttribute(normals, true);
         normals.enableBuffer(gl, false);
     }
     
     @Override
-    public void draw(GL2ES2 gl) {
+    public void internalDraw(GL2ES2 gl) {
         vertices.enableBuffer(gl, true);
         colors.enableBuffer(gl, true);
         normals.enableBuffer(gl, true);
@@ -201,7 +201,9 @@ public class Hemesh3D implements Object3D, SunflowRenderable {
         normals.enableBuffer(gl, false);
     }
     
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see net.hvidtfeldts.meshia.engine3d.SunflowRenderable#getTriangleMesh(org.sunflow.SunflowAPI)
      */
     @Override

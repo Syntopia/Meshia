@@ -1,15 +1,19 @@
 package net.hvidtfeldts.meshia.engine3d;
 
+import java.util.Arrays;
+
+import net.hvidtfeldts.utils.Logger;
+
 import com.jogamp.opengl.util.PMVMatrix;
 
 public class Camera {
-    private final float[] right = new float[] { 1, 0, 0 };
+    private final float[] right = new float[] { 0.7f, 0, -0.7f };
     
-    private float[] up = new float[] { 0, 1, 0 };
+    private float[] up = new float[] { 0.4f, -0.8f, 0.4f };
     
-    private float[] forward = new float[] { 0, 0, -1 };
+    private float[] forward = new float[] { 0.57f, 0.57f, 0.57f };
     
-    private final float[] pos = new float[] { 0, 0, 0 };
+    private final float[] pos = new float[] { 0, 0, -6 };
     
     public float[] getRight() {
         return right;
@@ -169,7 +173,10 @@ public class Camera {
     
     public void setMatrix(PMVMatrix m) {
         ortogonalize();
-        
+        Logger.log("Up:" + Arrays.toString(up));
+        Logger.log("Right:" + Arrays.toString(right));
+        Logger.log("F:" + Arrays.toString(forward));
+        Logger.log("Pos:" + Arrays.toString(pos));
         // For an idea of these, see: http://3dengine.org/Right-up-back_from_modelview
         
         // OpenGL is column-major based.
