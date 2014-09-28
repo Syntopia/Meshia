@@ -94,9 +94,14 @@ public final class OpenGlWindow extends GLJPanel implements MouseListener, Mouse
     
     @Override
     public void mouseDragged(MouseEvent e) {
-        if (SwingUtilities.isLeftMouseButton(e)) {
+        if (SwingUtilities.isLeftMouseButton(e) && SwingUtilities.isRightMouseButton(e)) {
+            engine.moveCamera(0, 0, (e.getY() - y) / 2.0f);
+            engine.zoom((e.getX() - x) / 10.0f);
+        }
+        else if (SwingUtilities.isLeftMouseButton(e)) {
             engine.rotate(x - e.getX(), y - e.getY());
         }
+        
         else {
             engine.moveCamera(-(x - e.getX()) / 10.f, (y - e.getY()) / 10.f, 0.0f);
         }

@@ -209,8 +209,7 @@ public class PolygonBuilder extends AbstractObject3D implements SunflowRenderabl
          * UINT16 – Attribute byte count
          * end
          */
-        try (@SuppressWarnings("resource")
-        FileChannel ch = new RandomAccessFile(filename, "rw").getChannel())
+        try (RandomAccessFile raf = new RandomAccessFile(filename, "rw"); FileChannel ch = raf.getChannel())
         {
             Logger.startTime();
             ByteBuffer bb = ByteBuffer.allocate(1000).order(ByteOrder.LITTLE_ENDIAN);

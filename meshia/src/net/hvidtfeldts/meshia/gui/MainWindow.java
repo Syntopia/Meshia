@@ -1,5 +1,7 @@
 package net.hvidtfeldts.meshia.gui;
 
+import groovy.lang.GroovyClassLoader;
+
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -24,11 +26,15 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
+import javax.swing.ProgressMonitor;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingUtilities;
 
 import net.hvidtfeldts.meshia.engine3d.Engine;
+import net.hvidtfeldts.meshia.engine3d.Object3D;
 import net.hvidtfeldts.meshia.engine3d.OpenGlWindow;
 import net.hvidtfeldts.meshia.engine3d.SimpleMarchingCubes;
+import net.hvidtfeldts.meshia.gui.TextDialog.CloseAction;
 import net.hvidtfeldts.meshia.math.Vector3;
 import net.hvidtfeldts.utils.Logger;
 
@@ -121,14 +127,9 @@ public class MainWindow extends JFrame {
                 ji3.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        int res = 100;
-                        Logger.startTime();
-                        SimpleMarchingCubes simpleMarchingCubes = new SimpleMarchingCubes(0, new Vector3(-1, -1, -1), new Vector3(1,
-                                1, 1), res,
-                                res, res, MainWindow.this);
-                        Logger.endTime("Marching Cubes");
-                        project.addObject(simpleMarchingCubes.getObject3D(engine.getShaderState()));
+                        doMarchingCubesFromJava();
                     }
+                    
                 });
                 JMenuItem ji4 = new JMenuItem("Shader Object (GLSL DE)");
                 p.add(ji4);
@@ -156,6 +157,55 @@ public class MainWindow extends JFrame {
         JButton outputButton = new JButton("Output");
         buttonPanel.add(outputButton);
         return buttonPanel;
+    }
+    
+    private void doMarchingCubesFromJava() {
+        
+        TextDialog td = new TextDialog();
+        td.setModal(true);
+        td.setVisible(true);
+        
+        if (td.getCloseAction() == CloseAction.OK) {
+            GroovyClassLoader gcl = new GroovyClassLoader();
+            Class clazz = gcl.parseClass(td.getCode());
+            SimpleMarchingCubes smc = null;
+            try {
+                smc = (SimpleMarchingCubes) clazz.newInstance();
+                gcl.close();
+            }
+            catch (InstantiationException | IllegalAccessException e) {
+                e.printStackTrace();
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+            
+            if (smc == null) {
+                return;
+            }
+            
+            int res = td.getGridSize();
+            final SimpleMarchingCubes simpleMarchingCubes = smc;
+            simpleMarchingCubes.initMarchingCubes(0, res, res, res, MainWindow.this, new Vector3(-1, -1, -1),
+                    new Vector3(1, 1, 1));
+            
+            final ProgressMonitor pm = new ProgressMonitor(MainWindow.this, "Marching...", "Polygonizing", 0, res);
+            pm.setMillisToDecideToPopup(1);
+            Thread t = new Thread() {
+                @Override
+                public void run() {
+                    final Object3D o = simpleMarchingCubes.getObject3D(engine.getShaderState(), pm);
+                    SwingUtilities.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            project.addObject(o);
+                        }
+                    });
+                };
+            };
+            
+            t.start();
+        }
     }
     
     @Override

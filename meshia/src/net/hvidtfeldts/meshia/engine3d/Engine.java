@@ -47,13 +47,13 @@ public class Engine implements GLEventListener, EventListener<ProjectEvent> {
     
     private Hemesh3D hemesh;
     private Object3D crossSection;
-    private RaytracerObject raytracerObject;
+    private FullscreenQuadObject raytracerObject;
     private JPanel panel;
     
     private final FloatBuffer farNear = FloatBuffer.allocate(2);
     
     private GLUniformData fovYScaleUniform;
-    private final float fovY = 45.0f;
+    private float fovY = 45.0f;
     private GLUniformData aspectUniform;
     
     private GLUniformData farNearUniform;
@@ -62,6 +62,11 @@ public class Engine implements GLEventListener, EventListener<ProjectEvent> {
     private int frames;
     
     private boolean inError;
+    
+    private GL2ES2 gl;
+    private float aspect;
+    private float zNear;
+    private float zFar;
     
     public Engine(Project project) {
         this.project = project;
@@ -91,16 +96,15 @@ public class Engine implements GLEventListener, EventListener<ProjectEvent> {
             
             initializeShaders(gl);
             
-            // box = new Box3D();
             hemesh = new Hemesh3D(shaderState, "Hemesh");
-            hemesh.init(gl);
+            raytracerObject = new FullscreenQuadObject(raytracerShaderState, "Quad");
+            
+            project.addObject(hemesh);
+            project.addObject(raytracerObject);
             
             for (Object3D o : project.getObjects()) {
                 o.init(gl);
             }
-            
-            raytracerObject = new RaytracerObject();
-            raytracerObject.init(gl, raytracerShaderState);
             
             // OpenGL Render Settings
             gl.glEnable(GL2ES2.GL_DEPTH_TEST);
@@ -137,7 +141,6 @@ public class Engine implements GLEventListener, EventListener<ProjectEvent> {
         fovYScaleUniform = new GLUniformData("fov_y_scale", 1);
         aspectUniform = new GLUniformData("aspect", 1);
         
-        // scale = tan(radians(fov/2.0));
         float fovYScale = (float) Math.tan((Math.PI * fovY / 360.0));
         fovYScaleUniform.setData(fovYScale);
         
@@ -271,23 +274,13 @@ public class Engine implements GLEventListener, EventListener<ProjectEvent> {
             gl.setSwapInterval(1);
             
             shaderState.useProgram(gl, true);
-            // Set location in front of camera
-            matrixStack.glMatrixMode(PMVMatrix.GL_PROJECTION);
-            matrixStack.glLoadIdentity();
             
-            // Setup frustum (as in RedSquareES2 JOGL demo)
+            aspect = (float) width / (float) height;
+            zNear = 0.5f;
+            zFar = 100f;
             
-            // compute projection parameters 'normal' perspective
-            final float aspect = (float) width / (float) height;
-            final float zNear = 1f;
-            final float zFar = 100f;
+            updateFOV();
             
-            aspectUniform.setData(aspect);
-            
-            farNear.put(0, zFar);
-            farNear.put(1, zNear);
-            
-            matrixStack.gluPerspective(fovY, aspect, zNear, zFar);
             shaderState.uniform(gl, pmvMatrixUniform);
             shaderState.useProgram(gl, false);
             
@@ -325,9 +318,8 @@ public class Engine implements GLEventListener, EventListener<ProjectEvent> {
     
     public void moveCamera(float x, float y, float z) {
         camera.move(x / 3.0f, y / 3.0f, z / 3.0f);
+        
     }
-    
-    GL2ES2 gl;
     
     public void takeSnapshot() {
         
@@ -433,5 +425,32 @@ public class Engine implements GLEventListener, EventListener<ProjectEvent> {
     
     public void setPanel(JPanel panel) {
         this.panel = panel;
+    }
+    
+    public void zoom(float f) {
+        this.fovY *= (1.0 + f);
+        if (fovY > 90) {
+            fovY = 90;
+        }
+        if (fovY < 4) {
+            fovY = 4;
+        }
+        
+        updateFOV();
+        Logger.log(fovY);
+    }
+    
+    private void updateFOV() {
+        // compute projection parameters 'normal' perspective
+        aspectUniform.setData(aspect);
+        
+        farNear.put(0, zFar);
+        farNear.put(1, zNear);
+        
+        matrixStack.glMatrixMode(PMVMatrix.GL_PROJECTION);
+        matrixStack.glLoadIdentity();
+        matrixStack.gluPerspective(fovY, aspect, zNear, zFar);
+        float fovYScale = (float) Math.tan((Math.PI * fovY / 360.0));
+        fovYScaleUniform.setData(fovYScale);
     }
 }
