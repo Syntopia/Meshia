@@ -4,27 +4,30 @@ import java.awt.Component;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.swing.ProgressMonitor;
+
 import net.hvidtfeldts.meshia.math.Vector3;
 
 import com.jogamp.opengl.util.glsl.ShaderState;
 
 public class SimpleMarchingCubes extends MarchingCubes {
-    private final Vector3 from;
-    private final Vector3 to;
     private PolygonBuilder builder;
     private int count;
-    private final float delta;
+    private float delta;
     
-    public SimpleMarchingCubes(double isolevel, Vector3 from, Vector3 to, int cellsX, int cellsY, int cellsZ, Component parentComponent) {
-        super(isolevel, cellsX + 1, cellsY + 1, cellsZ + 1, parentComponent);
-        this.from = from;
-        this.to = to;
-        delta = (to.getX() - from.getX()) / (cellsX * 120.0f);
+    public SimpleMarchingCubes() {
+        
+    };
+    
+    @Override
+    public void initMarchingCubes(double isolevel, int nx, int ny, int nz, Component parentComponent, Vector3 from, Vector3 to) {
+        super.initMarchingCubes(isolevel, nx, ny, nz, parentComponent, from, to);
+        delta = (to.getX() - from.getX()) / ((nx - 1) * 120.0f);
     }
     
-    public SunflowRenderable getObject3D(ShaderState shaderState) {
+    public SunflowRenderable getObject3D(ShaderState shaderState, ProgressMonitor pm) {
         builder = new PolygonBuilder(shaderState, String.format("MC %S,%S,%S", nx, ny, nz));
-        polygonise();
+        polygonise(pm);
         return builder;
     }
     
@@ -47,7 +50,7 @@ public class SimpleMarchingCubes extends MarchingCubes {
     protected void createPolygon(Vector3 p1, Vector3 p2, Vector3 p3) {
         boolean faceNormals = true;
         
-        boolean reuse = true;
+        boolean reuse = false;
         if (faceNormals) {
             if (reuse) {
                 Vector3 normal = Vector3.getPlaneNormal(p1, p2, p3);
@@ -116,12 +119,12 @@ public class SimpleMarchingCubes extends MarchingCubes {
         return p.getLength() - 0.8;
     }
     
-    @Override
-    protected double getValue(Vector3 p) {
+    protected double getValue2xd(Vector3 p) {
         return p.getLength() - 0.5;
     }
     
-    protected double getValue2e(Vector3 p) {
+    @Override
+    protected double getValue(Vector3 p) {
         
         double power = 6;
         p.multiply(1.15f);

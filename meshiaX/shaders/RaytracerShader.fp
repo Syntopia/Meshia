@@ -76,7 +76,7 @@ vec2 trace(vec3 from, vec3 direction) {
 void main (void)
 {
 	gl_FragDepth = 0.99; 
-
+	
 	vec3 rayDirection=normalize(dir);
 	
 	vec2 t = trace(eye,rayDirection);
