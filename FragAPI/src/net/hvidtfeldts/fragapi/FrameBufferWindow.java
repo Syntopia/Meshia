@@ -37,7 +37,7 @@ public class FrameBufferWindow extends JFrame {
         GLProfile.initSingleton();
     }
     
-    public FrameBufferWindow(FrameBuffer outputBuffer) {
+    public FrameBufferWindow(FrameBufferBase outputBuffer) {
         setLayout(new BorderLayout());
         setTitle("FragAPI");
         
@@ -71,7 +71,7 @@ public class FrameBufferWindow extends JFrame {
         this.invalidate();
     }
     
-    public static void show(final FrameBuffer outputBuffer) {
+    public static void show(final FrameBufferBase outputBuffer) {
         setNativeLookAndFeel();
         SwingUtilities.invokeLater(new Runnable() {
             
@@ -80,7 +80,7 @@ public class FrameBufferWindow extends JFrame {
                 FrameBufferWindow mw = new FrameBufferWindow(outputBuffer);
                 mw.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
                 mw.setVisible(true);
-                mw.setSize(430, 700);
+                mw.setSize(530, 800);
             }
             
         });

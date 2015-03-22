@@ -44,7 +44,7 @@ public final class OpenGlWindow extends GLJPanel implements MouseListener, Mouse
         
     }
     
-    public static OpenGlWindow create(FrameBuffer fb) {
+    public static OpenGlWindow create(FrameBufferBase fb) {
         fb.setAsOutputBuffer();
         Engine engine = new Engine();
         engine.setOutputBuffer(fb);

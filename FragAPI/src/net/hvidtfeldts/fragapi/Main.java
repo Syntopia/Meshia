@@ -1,19 +1,15 @@
 package net.hvidtfeldts.fragapi;
 
 public class Main {
-    private Main() {
-    }
-    
     public static void main(final String[] args) {
-        FrameBuffer fp = new FrameBuffer()
-                .setFragmentShader(Files.read("RaytracerShader.fp"))
-                .setVertexShader(Files.read("RaytracerShader.vp"));
+        Defaults.setResolution(500, 400);
         
-        FrameBuffer outputBuffer = new FrameBuffer()
-                .setFragmentShader(Files.read("SimpleShader.fp"))
-                .setVertexShader(Files.read("SimpleShader.vp"))
-                .setSampler2D(fp, "bufferx");
+        FrameBuffer hdr = FrameBuffer.create3D("RaytracerShader.fp");
         
-        FrameBufferWindow.show(outputBuffer);
+        FrameBuffer outputBuffer = FrameBuffer.create("SimpleShader.fp")
+                .setSampler2D("hdrBuffer", hdr)
+                .setSampler2D("image", "D:\\HDR\\Paper1.jpg");
+        
+        outputBuffer.show();
     }
 }

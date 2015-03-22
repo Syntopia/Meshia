@@ -41,7 +41,7 @@ public class Engine implements GLEventListener {
             
             camera.setupRaytracerMatrixStack(gl);
             
-            outputBuffer.initRecursive(gl);
+            outputBuffer.init(gl);
             
             // OpenGL Render Settings
             gl.glEnable(GL2ES2.GL_DEPTH_TEST);
@@ -130,7 +130,7 @@ public class Engine implements GLEventListener {
         return camera;
     }
     
-    public void setOutputBuffer(FrameBuffer fp) {
+    public void setOutputBuffer(FrameBufferBase fp) {
         this.outputBuffer = fp;
     }
     

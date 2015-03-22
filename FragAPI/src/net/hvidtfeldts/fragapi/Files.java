@@ -10,7 +10,7 @@ public final class Files {
     
     public static StringBuilder read(String fileName) {
         try {
-            return (StringBuilder) ShaderCode.readShaderSource(FrameBuffer.class, "Shaders/" + fileName, true);
+            return (StringBuilder) ShaderCode.readShaderSource(FrameBufferBase.class, "Shaders/" + fileName, true);
         }
         catch (IOException e) {
             throw new RuntimeException(fileName);
