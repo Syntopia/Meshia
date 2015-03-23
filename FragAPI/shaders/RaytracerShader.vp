@@ -15,9 +15,7 @@ void main(void)
 {
 	gl_Position =vertex;
 	
-	//gl_Position.xy*=tiles.x*tiles.y;
-	
-	pos = gl_Position.xy;
+	pos = vertex.xy*0.5+vec2(0.5);
 	mat4 modelView = pmvMatrix[1];
 	
 	// The ModelView matrix (stored in pmvMatrix[1]) is layouted as follows:

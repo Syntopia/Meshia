@@ -91,19 +91,28 @@ public final class OpenGlWindow extends GLJPanel implements MouseListener, Mouse
     @Override
     public void mouseDragged(MouseEvent e) {
         if (SwingUtilities.isLeftMouseButton(e) && SwingUtilities.isRightMouseButton(e)) {
-            engine.moveCamera(0, 0, (e.getY() - y) / 2.0f);
-            engine.getCamera().zoom((e.getX() - x) / 10.0f);
+            moveCamera(0, 0, (e.getY() - y) / 2.0f);
+            Camera.getInstance().zoom((e.getX() - x) / 10.0f);
         }
         else if (SwingUtilities.isLeftMouseButton(e)) {
-            engine.rotate(x - e.getX(), y - e.getY());
+            rotate(x - e.getX(), y - e.getY());
         }
         
         else {
-            engine.moveCamera(-(x - e.getX()) / 10.f, (y - e.getY()) / 10.f, 0.0f);
+            moveCamera(-(x - e.getX()) / 10.f, (y - e.getY()) / 10.f, 0.0f);
         }
         x = e.getX();
         y = e.getY();
         repaint();
+    }
+    
+    public void rotate(int i, int j) {
+        Camera.getInstance().rotateAboutRight(j / 100.0f);
+        Camera.getInstance().rotateAboutUp(i / 100.0f);
+    }
+    
+    public void moveCamera(float x, float y, float z) {
+        Camera.getInstance().move(x / 3.0f, y / 3.0f, z / 3.0f);
     }
     
     @Override
@@ -117,16 +126,16 @@ public final class OpenGlWindow extends GLJPanel implements MouseListener, Mouse
     @Override
     public void keyPressed(KeyEvent e) {
         if (e.getKeyChar() == 'a') {
-            engine.moveCamera(1, 0, 0);
+            moveCamera(1, 0, 0);
         }
         else if (e.getKeyChar() == 'd') {
-            engine.moveCamera(-1, 0, 0);
+            moveCamera(-1, 0, 0);
         }
         else if (e.getKeyChar() == 'w') {
-            engine.moveCamera(0, 0, 1);
+            moveCamera(0, 0, 1);
         }
         else if (e.getKeyChar() == 's') {
-            engine.moveCamera(0, 0, -1);
+            moveCamera(0, 0, -1);
         }
         repaint();
     }

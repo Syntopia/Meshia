@@ -36,53 +36,20 @@ public class FrameBufferBase implements FrameBuffer {
     private final FloatBuffer fb = FloatBuffer.allocate(2);
     private int counter;
     private final List<TextureData> textureData = new ArrayList<>();
+    private Camera camera;
     
-    private class TextureData {
-        private final String uniformName;
-        private int textureID = -1;
-        private FrameBuffer frameBuffer;
-        private Texture texture;
-        private String fileName;
-        
-        public TextureData(String uniformName, FrameBuffer fp) {
-            this.uniformName = uniformName;
-            this.frameBuffer = fp;
-        }
-        
-        public TextureData(String uniformName, String textureFileName) {
-            this.uniformName = uniformName;
-            this.fileName = textureFileName;
-        }
-        
-        public String getUniformName() {
-            return uniformName;
-        }
-        
-        public int getTextureID() {
-            if (textureID == -1) {
-                if (frameBuffer != null) {
-                    textureID = frameBuffer.getTexture();
-                    Logger.log("TextureID from framebuffer:" + textureID);
-                }
-                else if (texture == null) {
-                    
-                    try {
-                        texture = TextureIO.newTexture(new File(fileName), false);
-                    }
-                    catch (GLException | IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                    textureID = texture.getTextureObject();
-                    
-                    Logger.log("TextureID from texture:" + textureID);
-                }
-            }
-            return textureID;
-        }
-        
+    public FrameBufferBase() {
     }
     
-    FrameBufferBase() {
+    @Override
+    public FrameBuffer createCopy() {
+        FrameBufferBase c = new FrameBufferBase();
+        c.relativeSize = relativeSize;
+        c.absoluteSize = absoluteSize;
+        c.vertexShader = vertexShader;
+        c.fragmentShader = fragmentShader;
+        c.camera = camera;
+        return c;
     }
     
     public static FrameBuffer create(String fileName) {
@@ -96,6 +63,7 @@ public class FrameBufferBase implements FrameBuffer {
         FrameBuffer fb = new FrameBufferBase();
         fb.setVertexShader(Files.read("Simple3D.vp"));
         fb.setFragmentShader(Files.read(fileName));
+        fb.addCamera(new Camera());
         return fb;
     }
     
@@ -173,8 +141,10 @@ public class FrameBufferBase implements FrameBuffer {
         CharSequence[][] fragmentSource = new CharSequence[1][1];
         fragmentSource[0][0] = fragmentShader;
         final ShaderCode fp1 = new ShaderCode(GL2ES2.GL_FRAGMENT_SHADER, 1, fragmentSource);
-        vp1.defaultShaderCustomization(gl, true, true);
-        fp1.defaultShaderCustomization(gl, true, true);
+        if (!vertexShader.toString().startsWith("#version"))
+            vp1.defaultShaderCustomization(gl, true, true);
+        if (!fragmentShader.toString().startsWith("#version"))
+            fp1.defaultShaderCustomization(gl, true, true);
         final ShaderProgram sp1 = new ShaderProgram();
         check(sp1.add(gl, vp1, Logger.getLoggerWarnStream()));
         check(sp1.add(gl, fp1, Logger.getLoggerWarnStream()));
@@ -182,6 +152,9 @@ public class FrameBufferBase implements FrameBuffer {
         
         gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0);
         
+        if (camera != null) {
+            camera.setupRaytracerMatrixStack(gl);
+        }
     }
     
     private void createFBO(GL2ES2 gl) {
@@ -226,6 +199,11 @@ public class FrameBufferBase implements FrameBuffer {
         gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, offscreenBuffer ? fbos[0] : 0);
         gl.glViewport(0, 0, getWidth(), getHeight());
         shaderState.useProgram(gl, true);
+        
+        if (camera != null) {
+            camera.setUniforms(gl, shaderState);
+            
+        }
         
         int textureCounter = 0;
         for (TextureData td : textureData) {
@@ -272,8 +250,10 @@ public class FrameBufferBase implements FrameBuffer {
     }
     
     @Override
-    public FrameBuffer setSampler2D(String uniformName, FrameBuffer fp) {
-        previousBuffers.add(fp);
+    public FrameBuffer setSampler2D(String uniformName, FrameBuffer fp, boolean requireRedraw) {
+        if (requireRedraw) {
+            previousBuffers.add(fp);
+        }
         textureData.add(new TextureData(uniformName, fp));
         return this;
     }
@@ -289,8 +269,13 @@ public class FrameBufferBase implements FrameBuffer {
         return this;
     }
     
+    private boolean isInitialized;
+    
     @Override
     public void init(GL2ES2 gl) {
+        if (isInitialized)
+            return;
+        isInitialized = true;
         for (FrameBuffer fb : previousBuffers) {
             fb.init(gl);
         }
@@ -305,5 +290,56 @@ public class FrameBufferBase implements FrameBuffer {
     @Override
     public void show() {
         FrameBufferWindow.show(this);
+    }
+    
+    private class TextureData {
+        private final String uniformName;
+        private int textureID = -1;
+        private FrameBuffer frameBuffer;
+        private Texture texture;
+        private String fileName;
+        
+        public TextureData(String uniformName, FrameBuffer fp) {
+            this.uniformName = uniformName;
+            this.frameBuffer = fp;
+        }
+        
+        public TextureData(String uniformName, String textureFileName) {
+            this.uniformName = uniformName;
+            this.fileName = textureFileName;
+        }
+        
+        public String getUniformName() {
+            return uniformName;
+        }
+        
+        public int getTextureID() {
+            if (textureID == -1) {
+                if (frameBuffer != null) {
+                    textureID = frameBuffer.getTexture();
+                    Logger.log("TextureID from framebuffer:" + textureID);
+                }
+                else if (texture == null) {
+                    
+                    try {
+                        texture = TextureIO.newTexture(new File(fileName), false);
+                    }
+                    catch (GLException | IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                    textureID = texture.getTextureObject();
+                    
+                    Logger.log("TextureID from texture:" + textureID);
+                }
+            }
+            return textureID;
+        }
+        
+    }
+    
+    @Override
+    public FrameBuffer addCamera(Camera c) {
+        this.camera = c;
+        return this;
     }
 }

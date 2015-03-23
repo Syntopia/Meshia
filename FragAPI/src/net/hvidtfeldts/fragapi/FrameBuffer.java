@@ -28,9 +28,7 @@ public interface FrameBuffer {
     
     FrameBuffer setAsOutputBuffer();
     
-    FrameBuffer setSampler2D(String uniformName, FrameBuffer fp);
-    
-    FrameBuffer setSampler2D(String uniformName, String textureFileName);
+    FrameBuffer setSampler2D(String uniformName, String textureFilename);
     
     void init(GL2ES2 gl);
     
@@ -38,12 +36,26 @@ public interface FrameBuffer {
     
     List<FrameBuffer> getPreviousBuffers();
     
-    public static FrameBuffer create(String fileName) {
+    FrameBuffer addCamera(Camera c);
+    
+    static FrameBuffer create(String fileName) {
         return FrameBufferBase.create(fileName);
     }
     
-    public static FrameBuffer create3D(String fileName) {
+    static FrameBuffer create3D(String fileName) {
         return FrameBufferBase.create3D(fileName);
     }
+    
+    default FrameBuffer setSampler2D(String uniformName, FrameBuffer fp) {
+        return setSampler2D(uniformName, fp, true);
+    }
+    
+    FrameBuffer createCopy();
+    
+    default FrameBuffer createFlipFlop(String previousTextureName) {
+        return new FlipFlopFrameBuffer(this, previousTextureName);
+    }
+    
+    FrameBuffer setSampler2D(String uniformName, FrameBuffer fp, boolean requireRedraw);
     
 }

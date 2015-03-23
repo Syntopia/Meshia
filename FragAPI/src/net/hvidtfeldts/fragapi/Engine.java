@@ -10,11 +10,8 @@ import javax.media.opengl.GLException;
 import net.hvidtfeldts.utils.Logger;
 
 import com.jogamp.opengl.JoglVersion;
-import com.jogamp.opengl.util.glsl.ShaderState;
 
 public class Engine implements GLEventListener {
-    private final Camera camera = new Camera();
-    
     private long lastTime;
     private int frames;
     
@@ -38,8 +35,6 @@ public class Engine implements GLEventListener {
                 Logger.warn("No GLSL available, no rendering.");
                 return;
             }
-            
-            camera.setupRaytracerMatrixStack(gl);
             
             outputBuffer.init(gl);
             
@@ -73,13 +68,15 @@ public class Engine implements GLEventListener {
         
         final GL2ES2 gl = glad.getGL().getGL2ES2();
         
-        for (FrameBuffer fb : outputBuffer.getPreviousBuffers()) {
-            ShaderState ss = fb.getShaderState();
-            
-            ss.useProgram(gl, true);
-            camera.setUniforms(gl, ss);
-            ss.useProgram(gl, false);
-        }
+        /*
+         * for (FrameBuffer fb : outputBuffer.getPreviousBuffers()) {
+         * ShaderState ss = fb.getShaderState();
+         * 
+         * ss.useProgram(gl, true);
+         * camera.setUniforms(gl, ss);
+         * ss.useProgram(gl, false);
+         * }
+         */
         outputBuffer.draw(gl);
     }
     
@@ -105,7 +102,7 @@ public class Engine implements GLEventListener {
             return;
         }
         final GL2ES2 gl = glad.getGL().getGL2ES2();
-        camera.reshape(gl, x, y, width, height);
+        Camera.getInstance().reshape(gl, x, y, width, height);
     }
     
     @Override
@@ -115,19 +112,6 @@ public class Engine implements GLEventListener {
         if (!gl.hasGLSL()) {
             return;
         }
-    }
-    
-    public void rotate(int i, int j) {
-        camera.rotateAboutRight(j / 100.0f);
-        camera.rotateAboutUp(i / 100.0f);
-    }
-    
-    public void moveCamera(float x, float y, float z) {
-        camera.move(x / 3.0f, y / 3.0f, z / 3.0f);
-    }
-    
-    public Camera getCamera() {
-        return camera;
     }
     
     public void setOutputBuffer(FrameBufferBase fp) {

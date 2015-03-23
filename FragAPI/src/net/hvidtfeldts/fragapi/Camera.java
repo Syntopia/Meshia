@@ -12,6 +12,8 @@ import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
 public class Camera {
+    private static Camera instance;
+    
     private final float[] right = new float[] { 0.7f, 0, -0.7f };
     
     private float[] up = new float[] { 0.4f, -0.8f, 0.4f };
@@ -33,6 +35,13 @@ public class Camera {
     private float aspect;
     private float zNear;
     private float zFar;
+    
+    public Camera() {
+        if (instance != null) {
+            throw new IllegalStateException("Only one camera allowed");
+        }
+        instance = this;
+    }
     
     void setupRaytracerMatrixStack(final GL2ES2 gl) {
         raytracerMatrixStack = new PMVMatrix();
@@ -299,5 +308,9 @@ public class Camera {
             Logger.warn(e);
         }
         
+    }
+    
+    public static Camera getInstance() {
+        return instance;
     }
 }

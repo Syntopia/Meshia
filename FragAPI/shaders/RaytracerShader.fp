@@ -7,6 +7,8 @@ in vec3 eye;
 in vec2 pos;
 
 uniform vec2 farNear;
+uniform sampler2D previous;
+
 
 #define PI  3.14159265358979323846264
 
@@ -80,21 +82,23 @@ void main (void)
 	vec3 rayDirection=normalize(dir);
 	
 	vec2 t = trace(eye,rayDirection);
+	vec4 c;
 	if (t.x>0.00) {
 		float zFar = farNear[0];
 		float zNear = farNear[1];
 		float eyeHitZ = -t.y *dot(normalize(cameraForward),rayDirection);
 		float ndcDepth = ((zFar+zNear) + (2.0*zFar*zNear)/eyeHitZ)/(zFar-zNear);
 		gl_FragDepth =((gl_DepthRange.diff * ndcDepth) + gl_DepthRange.near + gl_DepthRange.far) / 2.0;
-		fragColor = vec4(vec3(t.x),gl_FragDepth);
-		return;
+		c = vec4(vec3(t.x),gl_FragDepth);
+	} else {
+		c = vec4(abs(dot(rayDirection, vec3(1,0,0))), abs(dot(rayDirection, vec3(0,1,0))), abs(dot(rayDirection, vec3(0,0,1))),1.0); ;
+		vec2 longlat = spherical(rayDirection.yzx);
+		if (mod(abs(longlat.x),0.1)<0.01 || mod(abs(longlat.y),0.1)<0.01) {
+			c = vec4(0.0,0.0,0.0,1.0);
+		}
 	}
-
-	fragColor = vec4(abs(dot(rayDirection, vec3(1,0,0))), abs(dot(rayDirection, vec3(0,1,0))), abs(dot(rayDirection, vec3(0,0,1))),1.0); ;
-	vec2 longlat = spherical(rayDirection.yzx);
-	if (mod(abs(longlat.x),0.1)<0.01 || mod(abs(longlat.y),0.1)<0.01) {
-		fragColor = vec4(0.0,0.0,0.0,1.0);
-		return;
-	}
+	
+	vec4 c2 = texture2D(previous,pos);
+	fragColor = 0.9*c+0.1*c2;
 }
 
