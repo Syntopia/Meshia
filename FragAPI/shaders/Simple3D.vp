@@ -1,0 +1,31 @@
+// Contains p, mv, inverse(mv), transpose(inv(mv)) = normalmatrix
+uniform mat4 pmvMatrix[4]; 
+uniform float fov_y_scale;
+uniform float aspect;
+uniform vec2 tiles;
+
+in vec4 vertex;
+
+out vec3 dir;
+out vec3 cameraForward;
+out vec3 eye;
+out vec2 pos;
+
+void main(void)
+{
+	gl_Position =vertex;
+	
+	pos = vertex.xy*0.5+vec2(0.5);
+	
+	mat4 modelView = pmvMatrix[1];
+	
+	// The ModelView matrix (stored in pmvMatrix[1]) is layouted as follows:
+	// [  r.x  r.y  r.z q.x ]
+	// [  u.x  u.y  u.z q.y ]
+	// [ -f.x -f.y -f.z q.z ]
+	// [    0    0    0   1 ]
+	
+	eye = -(modelView[3].xyz)*mat3(modelView);
+	dir= vec3(gl_Position.x*fov_y_scale*aspect,gl_Position.y*fov_y_scale,-1.0)*mat3(modelView);
+	cameraForward = vec3(0,0,-1.0)*mat3(modelView);
+}
